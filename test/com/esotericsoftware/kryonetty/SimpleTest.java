@@ -1,19 +1,24 @@
 
 package com.esotericsoftware.kryonetty;
 
+import static org.junit.Assert.assertTrue;
+
 import com.esotericsoftware.kryo.Kryo;
 
 import java.net.InetSocketAddress;
 
-import junit.framework.TestCase;
-
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.junit.Before;
+import org.junit.Test;
 
-public class SimpleTest extends TestCase {
+public class SimpleTest {
 	protected boolean testRequestReceived;
+	private Server server;
+	private Client client;
 
-	public void testSimple () throws Exception {
-		Server server = new Server(54321) {
+	@Before
+	public void setup() {
+		server = new Server(54321) {
 			public void connected (ChannelHandlerContext ctx) {
 				System.out.println("Server: Client connected: " + ctx.getChannel().getRemoteAddress());
 				ctx.getChannel().write("make a programmer rich");
@@ -34,8 +39,7 @@ public class SimpleTest extends TestCase {
 				return new Kryo();
 			}
 		};
-
-		Client client = new Client(new InetSocketAddress("localhost", 54321)) {
+		client = new Client(new InetSocketAddress("localhost", 54321)) {
 			public void connected (ChannelHandlerContext ctx) {
 				System.out.println("Client: Connected to server: " + ctx.getChannel().getRemoteAddress());
 			}
@@ -52,11 +56,22 @@ public class SimpleTest extends TestCase {
 				return new Kryo();
 			}
 		};
+	}
+	
+	@Test
+	public void testSimple () throws Exception {
+		client.send("i like the way you do it right thurrrr");
+		client.close();
+		server.close();
+	}
+	
+	@Test
+	public void testRegisterClass() throws Exception {
+
 		client.getKryo().register(TestRequest.class);
 		server.getKryo().register(TestRequest.class);
 		TestRequest request = new TestRequest();
 		request.someText = "Bwuk!";
-		client.send("i like the way you do it right thurrrr");
 		client.send(request);
 		Thread.sleep(1000);
 		client.close();
