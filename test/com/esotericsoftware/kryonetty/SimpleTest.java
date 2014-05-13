@@ -8,6 +8,7 @@ import com.esotericsoftware.kryo.Kryo;
 import java.net.InetSocketAddress;
 
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -59,6 +60,12 @@ public class SimpleTest {
 		};
 	}
 	
+	@AfterClass
+	public static void afterClass() {
+		client.close();
+		server.close();
+	}
+
 	@Test
 	public void testSimple () throws Exception {
 		System.out.println("== Test Simple Behaviour == ");
