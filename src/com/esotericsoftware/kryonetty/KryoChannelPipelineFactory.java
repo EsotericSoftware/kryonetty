@@ -16,6 +16,7 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
+import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.frame.FrameDecoder;
@@ -63,6 +64,15 @@ public class KryoChannelPipelineFactory implements ChannelPipelineFactory {
 			public void messageReceived (ChannelHandlerContext ctx, MessageEvent e)
 					throws Exception {
 				endpoint.received(ctx, e.getMessage());
+			}
+
+			@Override
+			public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
+					throws Exception {
+				//Probably can't do much about this.
+				//We implement the default behaviour from SimpleChannelUpstreamHandler
+				//to remove the error message
+				ctx.sendUpstream(e);
 			}
 		});
 		return pipeline;
