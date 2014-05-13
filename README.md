@@ -1,4 +1,4 @@
-![KryoNetty](https://raw.github.com/wiki/EsotericSoftware/kryonetty/images/logo.jpg)
+![KryoNetty](https://raw.github.com/wiki/EsotericSoftware/kryonetty/logo.jpg)
 
 KryoNetty is a Java library that provides clean and simple API for efficient TCP and UDP client/server network communication using [Netty](http://netty.io/). KryoNetty uses the [Kryo serialization library](https://github.com/EsotericSoftware/kryo) to automatically and efficiently transfer object graphs across the network.
 
