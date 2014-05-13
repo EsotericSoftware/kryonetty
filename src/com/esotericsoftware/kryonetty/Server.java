@@ -8,7 +8,10 @@ import java.util.concurrent.Executors;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 
-/** @author Nathan Sweet */
+/**
+ * Skeleton Kryo server implementation using Netty.
+ * @author Nathan Sweet
+ */
 public abstract class Server implements Endpoint {
 	private ServerBootstrap bootstrap;
 

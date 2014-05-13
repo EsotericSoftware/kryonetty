@@ -23,16 +23,25 @@ import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 
-/** Creates a new ChannelPipeline for Channel, which handles incoming and outgoing messages.
- * @author Nathan Sweet */
+/**
+ * A ChannelPipelineFactory to handle Kryo messages. 
+ * @author Nathan Sweet
+ * */
 public class KryoChannelPipelineFactory implements ChannelPipelineFactory {
+	private static final int EXECUTOR_CORE_POOL_SIZE = 10;
+	private static final long EXECUTOR_KEEP_ALIVE_TIME = 60;
 	final Endpoint endpoint;
-	private Executor executor = new OrderedMemoryAwareThreadPoolExecutor(10, 0, 0, 60, TimeUnit.SECONDS);
+	private Executor executor = new OrderedMemoryAwareThreadPoolExecutor(
+		EXECUTOR_CORE_POOL_SIZE, 0, 0, EXECUTOR_KEEP_ALIVE_TIME, TimeUnit.SECONDS);
 
+	/**
+	 * Construct a new pipeline factory attached to the given end-point.
+	 * @param endpoint
+	 */
 	public KryoChannelPipelineFactory (Endpoint endpoint) {
 		this.endpoint = endpoint;
 	}
-
+	@Override
 	public ChannelPipeline getPipeline () throws Exception {
 		Kryo kryo = endpoint.newKryo();
 		ChannelPipeline pipeline = Channels.pipeline();
@@ -40,15 +49,19 @@ public class KryoChannelPipelineFactory implements ChannelPipelineFactory {
 		pipeline.addLast("encoder", new KryoEncoder(kryo, 4 * 1024, 16 * 1024));
 		pipeline.addLast("executor", new ExecutionHandler(executor));
 		pipeline.addLast("business", new SimpleChannelUpstreamHandler() {
-			public void channelConnected (ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+			@Override
+			public void channelConnected (ChannelHandlerContext ctx, ChannelStateEvent e)
+					throws Exception {
 				endpoint.connected(ctx);
 			}
-
-			public void channelDisconnected (ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+			@Override
+			public void channelDisconnected (ChannelHandlerContext ctx, ChannelStateEvent e)
+					throws Exception {
 				endpoint.disconnected(ctx);
 			}
-
-			public void messageReceived (ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+			@Override
+			public void messageReceived (ChannelHandlerContext ctx, MessageEvent e)
+					throws Exception {
 				endpoint.received(ctx, e.getMessage());
 			}
 		});
@@ -64,7 +77,9 @@ public class KryoChannelPipelineFactory implements ChannelPipelineFactory {
 			this.kryo = kryo;
 		}
 
-		protected Object decode (ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
+		@Override
+		protected Object decode (ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer)
+				throws Exception {
 			input.setBuffer(buffer.array(), buffer.readerIndex(), buffer.readableBytes());
 			if (length == -1) {
 				// Read length.
@@ -97,7 +112,8 @@ public class KryoChannelPipelineFactory implements ChannelPipelineFactory {
 			output = new Output(bufferSize, maxBufferSize);
 		}
 
-		protected Object encode (ChannelHandlerContext ctx, Channel channel, Object object) throws Exception {
+		protected Object encode (ChannelHandlerContext ctx, Channel channel, Object object)
+				throws Exception {
 			output.clear();
 			output.setPosition(4);
 			kryo.writeClassAndObject(output, object);
