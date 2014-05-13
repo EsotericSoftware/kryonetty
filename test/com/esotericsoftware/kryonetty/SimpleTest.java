@@ -9,15 +9,16 @@ import java.net.InetSocketAddress;
 
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class SimpleTest {
-	protected boolean testRequestReceived;
-	private Server server;
-	private Client client;
+	protected static boolean testRequestReceived;
+	private static Server server;
+	private static Client client;
 
-	@Before
-	public void setup() {
+	@BeforeClass
+	public static void setupClass() {
 		server = new Server(54321) {
 			public void connected (ChannelHandlerContext ctx) {
 				System.out.println("Server: Client connected: " + ctx.getChannel().getRemoteAddress());
@@ -60,21 +61,20 @@ public class SimpleTest {
 	
 	@Test
 	public void testSimple () throws Exception {
+		System.out.println("== Test Simple Behaviour == ");
 		client.send("i like the way you do it right thurrrr");
-		client.close();
-		server.close();
+		Thread.sleep(1000);
 	}
 	
 	@Test
-	public void testRegisterClass() throws Exception {
-
+	public void testCustomClass() throws Exception {
+		System.out.println("== Test Custom Class Behaviour == ");
 		client.getKryo().register(TestRequest.class);
 		server.getKryo().register(TestRequest.class);
 		TestRequest request = new TestRequest();
 		request.someText = "Bwuk!";
 		client.send(request);
 		Thread.sleep(1000);
-		client.close();
 		assertTrue(testRequestReceived);
 	}
 }
