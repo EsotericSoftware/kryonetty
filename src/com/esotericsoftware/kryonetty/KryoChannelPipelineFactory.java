@@ -43,7 +43,7 @@ public class KryoChannelPipelineFactory implements ChannelPipelineFactory {
 	}
 	@Override
 	public ChannelPipeline getPipeline () throws Exception {
-		Kryo kryo = endpoint.newKryo();
+		Kryo kryo = endpoint.getKryo();
 		ChannelPipeline pipeline = Channels.pipeline();
 		pipeline.addLast("decoder", new KryoDecoder(kryo));
 		pipeline.addLast("encoder", new KryoEncoder(kryo, 4 * 1024, 16 * 1024));
