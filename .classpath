@@ -8,7 +8,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/kryo"/>
 	<classpathentry kind="lib" path="lib/kryo-2.24.0.jar"/>
 	<classpathentry kind="lib" path="lib/reflectasm-1.09-shaded.jar"/>
-	<classpathentry kind="lib" path="lib/netty-3.4.4.Final.jar"/>
 	<classpathentry kind="lib" path="lib-test/junit-4.6.jar"/>
+	<classpathentry kind="lib" path="lib/netty-all-4.1.48.Final.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
