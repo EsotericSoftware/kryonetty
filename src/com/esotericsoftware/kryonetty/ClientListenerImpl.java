@@ -4,9 +4,9 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jboss.netty.channel.ChannelHandlerContext;
-
 import com.esotericsoftware.kryo.Kryo;
+
+import io.netty.channel.ChannelHandlerContext;
 
 /**
  * An implementation of Client that uses the listener model as per KryoNet.
@@ -18,8 +18,8 @@ public class ClientListenerImpl extends Client {
 	private Kryo kryo;
 
 
-	public ClientListenerImpl (SocketAddress serverAddress) {
-		super(serverAddress);
+	public ClientListenerImpl () {
+		super();
 		listeners = new ArrayList<Listener>();
 	}
 	

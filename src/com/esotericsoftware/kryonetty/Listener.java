@@ -1,6 +1,6 @@
 package com.esotericsoftware.kryonetty;
 
-import org.jboss.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelHandlerContext;
 
 public interface Listener {
 

@@ -3,7 +3,7 @@ package com.esotericsoftware.kryonetty;
 
 import com.esotericsoftware.kryo.Kryo;
 
-import org.jboss.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelHandlerContext;
 
 /** @author Nathan Sweet */
 public interface Endpoint {
