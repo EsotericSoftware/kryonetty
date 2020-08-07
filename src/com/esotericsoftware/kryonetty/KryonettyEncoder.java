@@ -2,29 +2,36 @@ package com.esotericsoftware.kryonetty;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
-
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
-public class KryonettyEncoder extends MessageToByteEncoder {
-	private final Output output;
-	private final Kryo kryo;
+import java.io.ByteArrayOutputStream;
 
-	public KryonettyEncoder (Kryo kryo, int bufferSize, int maxBufferSize) {
-		this.kryo = kryo;
-		output = new Output(bufferSize, maxBufferSize);
+public class KryonettyEncoder extends MessageToByteEncoder {
+
+	private final Endpoint endpoint;
+
+	public KryonettyEncoder (Endpoint endpoint) {
+		this.endpoint = endpoint;
 	}
 
 	protected void encode (ChannelHandlerContext ctx, Object object, ByteBuf buffer)
 			throws Exception {
-		output.clear();
-		output.setPosition(4);
+		Kryo kryo = endpoint.getKryoHolder().getKryo();
+		Output output = endpoint.getKryoHolder().getOutput();
+
+		ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+		output.setOutputStream(outStream);
+
 		kryo.writeClassAndObject(output, object);
-		int total = output.position();
-		output.setPosition(0);
-		output.writeInt(total - 4);
-		buffer.writeBytes(Unpooled.wrappedBuffer(output.getBuffer(), 0, total));
+		output.flush();
+		output.close();
+
+		byte[] outArray = outStream.toByteArray();
+		buffer.writeShort(outArray.length);
+		buffer.writeBytes(outArray);
+		endpoint.getKryoHolder().freeOutput(output);
+		endpoint.getKryoHolder().freeKryo(kryo);
 	}
 }
