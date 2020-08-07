@@ -2,7 +2,6 @@
 package com.esotericsoftware.kryonetty;
 
 import com.esotericsoftware.kryonetty.kryo.EndpointOptions;
-import com.esotericsoftware.kryonetty.kryo.KryoHolder;
 import com.esotericsoftware.kryonetty.kryo.KryoOptions;
 import io.netty.channel.ChannelHandlerContext;
 import org.junit.AfterClass;
@@ -10,10 +9,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class SimpleTest {
+
+    private static final TestRequest TEST_REQUEST = new TestRequest("I'm not rich. but maybe with tests", 52411, true, Arrays.asList("Test1", "Test2", "Test3", "Test4", "Test5"));
 
     protected static boolean testRequestReceived;
     private static Server server;
@@ -25,7 +28,7 @@ public class SimpleTest {
         KryoOptions kryoOptions = new KryoOptions()
                 .inputSize(4096)
                 .outputSize(4096)
-                .register(String.class, TestRequest.class);
+                .register(TestRequest.class);
 
         EndpointOptions endpointOptions = new EndpointOptions()
                 .useLogging()
@@ -46,6 +49,12 @@ public class SimpleTest {
                 System.out.println("Server: Received: " + object);
                 if (object instanceof TestRequest) {
                     testRequestReceived = true;
+                    TestRequest request = (TestRequest) object;
+                    try {
+                        send(ctx.channel(), request);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
@@ -61,6 +70,13 @@ public class SimpleTest {
 
             public void received(ChannelHandlerContext ctx, Object object) {
                 System.out.println("Client: Received: " + object);
+                if(object instanceof TestRequest) {
+                    TestRequest request = (TestRequest) object;
+                    assertEquals(request.someText, TEST_REQUEST.someText);
+                    assertEquals(request.someLong, TEST_REQUEST.someLong);
+                    assertEquals(request.someBoolean, TEST_REQUEST.someBoolean);
+                    assertEquals(request.someList, TEST_REQUEST.someList);
+                }
             }
 
         };
@@ -85,9 +101,7 @@ public class SimpleTest {
     @Test
     public void testCustomClass() throws Exception {
         System.out.println("== Test Custom Class Behaviour == ");
-        TestRequest request = new TestRequest();
-        request.someText = "Bwuk!";
-        client.send(request);
+        client.send(TEST_REQUEST);
         Thread.sleep(1000);
         assertTrue(testRequestReceived);
     }
