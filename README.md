@@ -26,6 +26,25 @@ KryoNetty is very similar to [KryoNet](https://github.com/EsotericSoftware/kryon
         .register(TestRequest.class);
 ```
 
+To register more classes than one:
+
+```java
+    KryoNetty kryoNetty = new KryoNetty()
+        .useLogging()
+        .useExecution()
+        .threadSize(16)
+        .inputSize(4096)
+        .outputSize(4096)
+        .maxOutputSize(-1)
+        .register(
+            TestRequest.class,
+            TestResponse.class,
+            SomeClass.class,
+            Random.class
+        )
+```
+
+
 Every option returns the current instance of `KryoNetty`
 Current Options:
 - `useLogging()` 
