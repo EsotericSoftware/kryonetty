@@ -1,8 +1,6 @@
 
 package com.esotericsoftware.kryonetty;
 
-import java.net.SocketAddress;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -10,6 +8,8 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+
+import java.net.SocketAddress;
 
 /**
  * Provides a skeleton Endpoint implementation using Netty IO.
@@ -35,7 +35,6 @@ public abstract class Client implements Endpoint {
 	
 	/**
 	 * Create a new client connected to the given socket.
-	 * @param serverAddress Server to connect to.
 	 */
 	public Client() {
 		group = new NioEventLoopGroup();
@@ -49,7 +48,7 @@ public abstract class Client implements Endpoint {
 
 	/**
 	 * Write the given object to the channel.
-	 * @param object
+	 * @param obj
 	 */
 	public void send(Object obj) throws InterruptedException {
 		ChannelFuture lastWriteFuture = null;
