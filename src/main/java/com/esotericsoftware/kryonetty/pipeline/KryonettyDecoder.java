@@ -36,13 +36,13 @@ public class KryonettyDecoder extends ByteToMessageDecoder {
 		byte[] buf = new byte[len];
 		buffer.readBytes(buf);
 
-		Kryo kryo = endpoint.kryoHolder().getKryo();
-		Input input = endpoint.kryoHolder().getInput();
+		Kryo kryo = endpoint.kryoSerialization().getKryo();
+		Input input = endpoint.kryoSerialization().getInput();
 		input.setInputStream(new ByteArrayInputStream(buf));
 		Object object = kryo.readClassAndObject(input);
 		input.close();
-		endpoint.kryoHolder().freeKryo(kryo);
-		endpoint.kryoHolder().freeInput(input);
+		endpoint.kryoSerialization().freeKryo(kryo);
+		endpoint.kryoSerialization().freeInput(input);
 		out.add(object);
 	}
 }
