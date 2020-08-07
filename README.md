@@ -8,11 +8,11 @@ KryoNetty is very similar to [KryoNet](https://github.com/EsotericSoftware/kryon
 
 Since we work with a `Kryo.class`, `Input.class` & `Output.class` pool from `kryo-5.0.0`, classes are passed to the `KryoHolder.class` constructor for registration. 
 Example from `SimpleTest.class`:
-
-<code>@Override<br>
-public KryoHolder getKryoHolder() {<br>
-    return new KryoHolder(-1, -1, String.class, TestRequest.class);<br>
-    }<br>
-</code>
+```java
+@Override
+public KryoHolder getKryoHolder() {
+    return new KryoHolder(-1, -1, String.class, TestRequest.class);
+}
+```
 
 Please use the [KryoNet discussion group](http://groups.google.com/group/kryonet-users) for support.
