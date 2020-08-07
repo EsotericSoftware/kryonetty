@@ -2,22 +2,20 @@
 package com.esotericsoftware.kryonetty;
 
 import com.esotericsoftware.kryonetty.kryo.Endpoint;
-import com.esotericsoftware.kryonetty.kryo.EndpointOptions;
-import com.esotericsoftware.kryonetty.kryo.KryoOptions;
+import com.esotericsoftware.kryonetty.kryo.KryoNetty;
 import com.esotericsoftware.kryonetty.pipeline.KryonettyHandler;
 import com.esotericsoftware.kryonetty.pipeline.KryonettyInitializer;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollSocketChannel;
+import io.netty.channel.epoll.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 
 /**
  * Provides a skeleton Endpoint implementation using Netty IO.
@@ -30,8 +28,8 @@ public class Client extends Endpoint {
     private final EventLoopGroup group;
     private Channel channel;
 
-    public Client(KryoOptions kryoOptions, EndpointOptions endpointOptions) {
-        super(kryoOptions, endpointOptions);
+    public Client(KryoNetty kryoNetty) {
+        super(kryoNetty);
 
         boolean isEpoll = Epoll.isAvailable();
 
@@ -40,8 +38,14 @@ public class Client extends Endpoint {
         this.bootstrap = new Bootstrap()
                 .group(group)
                 .channel(isEpoll ? EpollSocketChannel.class : NioSocketChannel.class)
+                .handler(new KryonettyInitializer(this, new KryonettyHandler(this)))
                 .option(ChannelOption.TCP_NODELAY, true)
-                .handler(new KryonettyInitializer(this, new KryonettyHandler(this)));
+                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+        if(isEpoll) {
+            bootstrap
+                    .option(EpollChannelOption.EPOLL_MODE, EpollMode.EDGE_TRIGGERED)
+                    .option(EpollChannelOption.TCP_FASTOPEN_CONNECT, true);
+        }
     }
 
     /**
@@ -77,10 +81,11 @@ public class Client extends Endpoint {
         channel = null;
     }
 
-    public void connect(SocketAddress serverAddress) {
+    public void connect(String host, int port) {
         try {
             // Start the client
-            ChannelFuture f = bootstrap.connect(serverAddress);
+
+            ChannelFuture f = bootstrap.connect(new InetSocketAddress(host, port));
             channel = f.sync().channel();
 
             // Wait until the connection is closed.

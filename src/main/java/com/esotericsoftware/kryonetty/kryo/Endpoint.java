@@ -3,24 +3,16 @@ package com.esotericsoftware.kryonetty.kryo;
 
 import com.esotericsoftware.kryonetty.network.handler.NetworkEventManager;
 
-/** @author Nathan Sweet */
 public abstract class Endpoint implements EndpointReceiver {
 
-	private final KryoOptions kryoOptions;
-	private final EndpointOptions endpointOptions;
+	private final KryoNetty kryoNetty;
 	private final KryoHolder kryoHolder;
 	private final NetworkEventManager networkEventManager;
 
-	public Endpoint(KryoOptions kryoOptions, EndpointOptions endpointOptions) {
-		this.kryoOptions = kryoOptions;
-		this.endpointOptions = endpointOptions;
-		this.kryoHolder = new KryoHolder(this);
+	public Endpoint(KryoNetty kryoNetty) {
+		this.kryoNetty = kryoNetty;
+		this.kryoHolder = new KryoHolder(kryoNetty);
 		this.networkEventManager = new NetworkEventManager();
-	}
-
-	@Override
-	public KryoOptions kryoOptions() {
-		return this.kryoOptions;
 	}
 
 	@Override
@@ -29,8 +21,8 @@ public abstract class Endpoint implements EndpointReceiver {
 	}
 
 	@Override
-	public EndpointOptions endpointOptions() {
-		return this.endpointOptions;
+	public KryoNetty kryoNetty() {
+		return this.kryoNetty;
 	}
 
 	@Override

@@ -17,8 +17,7 @@ public class KryonettyEncoder extends MessageToByteEncoder {
 		this.endpoint = endpoint;
 	}
 
-	protected void encode (ChannelHandlerContext ctx, Object object, ByteBuf buffer)
-			throws Exception {
+	protected void encode (ChannelHandlerContext ctx, Object object, ByteBuf buffer) {
 		Kryo kryo = endpoint.kryoHolder().getKryo();
 		Output output = endpoint.kryoHolder().getOutput();
 

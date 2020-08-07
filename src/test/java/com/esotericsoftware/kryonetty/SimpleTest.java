@@ -1,8 +1,7 @@
 
 package com.esotericsoftware.kryonetty;
 
-import com.esotericsoftware.kryonetty.kryo.EndpointOptions;
-import com.esotericsoftware.kryonetty.kryo.KryoOptions;
+import com.esotericsoftware.kryonetty.kryo.KryoNetty;
 import com.esotericsoftware.kryonetty.network.ConnectEvent;
 import com.esotericsoftware.kryonetty.network.DisconnectEvent;
 import com.esotericsoftware.kryonetty.network.ReceiveEvent;
@@ -13,7 +12,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.net.InetSocketAddress;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
@@ -21,28 +19,25 @@ import static org.junit.Assert.assertTrue;
 
 public class SimpleTest {
 
-    public static final TestRequest TEST_REQUEST = new TestRequest("I'm not rich. but maybe with tests", 52411, true, Arrays.asList("Test1", "Test2", "Test3", "Test4", "Test5"));
+    public static final TestRequest TEST_REQUEST = new TestRequest("I'm not rich, but maybe with tests", 52411, true, Arrays.asList("Test1", "Test2", "Test3", "Test4", "Test5"));
 
     public static boolean testRequestReceived;
     public static Server server;
     public static Client client;
 
-    public SimpleTest() {
-    }
-
     @BeforeClass
     public static void setupClass() {
 
-        KryoOptions kryoOptions = new KryoOptions()
+        KryoNetty kryoNetty = new KryoNetty()
+                .useLogging()
+                .useExecution()
+                .threadSize(16)
                 .inputSize(4096)
                 .outputSize(4096)
+                .maxOutputSize(-1)
                 .register(TestRequest.class);
 
-        EndpointOptions endpointOptions = new EndpointOptions()
-                .useExecution()
-                .threadSize(16);
-
-        server = new Server(kryoOptions, endpointOptions);
+        server = new ThreadedServer(kryoNetty);
         server.eventHandler().register(new NetworkListener() {
             @NetworkHandler
             public void onConnect(ConnectEvent event) {
@@ -77,7 +72,7 @@ public class SimpleTest {
         });
 
 
-        client = new Client(kryoOptions, endpointOptions);
+        client = new ThreadedClient(kryoNetty);
 
         client.eventHandler().register(new NetworkListener() {
             @NetworkHandler
@@ -111,7 +106,7 @@ public class SimpleTest {
         });
 
         server.start(54321);
-        client.connect(new InetSocketAddress("localhost", 54321));
+        client.connect("localhost", 54321);
     }
 
     @AfterClass

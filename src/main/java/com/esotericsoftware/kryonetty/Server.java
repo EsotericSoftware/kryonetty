@@ -2,15 +2,13 @@
 package com.esotericsoftware.kryonetty;
 
 import com.esotericsoftware.kryonetty.kryo.Endpoint;
-import com.esotericsoftware.kryonetty.kryo.EndpointOptions;
-import com.esotericsoftware.kryonetty.kryo.KryoOptions;
+import com.esotericsoftware.kryonetty.kryo.KryoNetty;
 import com.esotericsoftware.kryonetty.pipeline.KryonettyHandler;
 import com.esotericsoftware.kryonetty.pipeline.KryonettyInitializer;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
-import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.epoll.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
@@ -28,8 +26,8 @@ public class Server extends Endpoint {
     private final EventLoopGroup workerGroup;
     private Channel channel;
 
-    public Server(KryoOptions kryoOptions, EndpointOptions endpointOptions) {
-        super(kryoOptions, endpointOptions);
+    public Server(KryoNetty kryoNetty) {
+        super(kryoNetty);
 
         boolean isEpoll = Epoll.isAvailable();
 
@@ -40,8 +38,16 @@ public class Server extends Endpoint {
                 .group(bossGroup, workerGroup)
                 .channel(isEpoll ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
                 .childHandler(new KryonettyInitializer(this, new KryonettyHandler(this)))
+                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_REUSEADDR, true);
+        if(isEpoll) {
+            bootstrap
+                    .childOption(EpollChannelOption.EPOLL_MODE, EpollMode.EDGE_TRIGGERED)
+                    .option(EpollChannelOption.TCP_FASTOPEN, 3)
+                    .option(EpollChannelOption.SO_REUSEPORT, true);
+        }
     }
 
     public void start(int port) {

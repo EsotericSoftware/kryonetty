@@ -19,14 +19,14 @@ public class KryonettyInitializer extends ChannelInitializer<SocketChannel> {
     public KryonettyInitializer(Endpoint endpoint, ChannelInboundHandlerAdapter channelInboundHandler) {
         this.endpoint = endpoint;
         this.channelInboundHandler = channelInboundHandler;
-        this.executorGroup = new DefaultEventExecutorGroup(endpoint.endpointOptions().getExecutionThreadSize());
+        this.executorGroup = new DefaultEventExecutorGroup(endpoint.kryoNetty().getExecutionThreadSize());
     }
 
     @Override
-    public void initChannel(SocketChannel ch) throws Exception {
+    public void initChannel(SocketChannel ch) {
         ChannelPipeline pipeline = ch.pipeline();
 
-        if(endpoint.endpointOptions().isUseLogging()) {
+        if(endpoint.kryoNetty().isUseLogging()) {
             pipeline.addLast("logging-handler", new LoggingHandler(LogLevel.INFO));
         }
 
@@ -34,7 +34,7 @@ public class KryonettyInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast("decoder", new KryonettyDecoder(endpoint));
         pipeline.addLast("encoder", new KryonettyEncoder(endpoint));
 
-        if(endpoint.endpointOptions().isUseExecution()) {
+        if(endpoint.kryoNetty().isUseExecution()) {
             // and then executed business logic.
             pipeline.addLast(executorGroup, this.channelInboundHandler);
         } else {

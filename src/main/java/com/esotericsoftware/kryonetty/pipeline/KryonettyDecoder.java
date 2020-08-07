@@ -19,8 +19,7 @@ public class KryonettyDecoder extends ByteToMessageDecoder {
 	}
 
 	@Override
-	protected void decode (ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out)
-			throws Exception {
+	protected void decode (ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) {
 
 		if (buffer.readableBytes() < 2)
 			return;

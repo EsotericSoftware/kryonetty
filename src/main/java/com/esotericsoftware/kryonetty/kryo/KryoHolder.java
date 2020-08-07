@@ -3,6 +3,7 @@ package com.esotericsoftware.kryonetty.kryo;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.serializers.JavaSerializer;
 import com.esotericsoftware.kryo.util.Pool;
 
 import java.math.BigDecimal;
@@ -16,21 +17,19 @@ public class KryoHolder {
     private static final int DEFAULT_INPUT_BUFFER_SIZE = 2048;
     private static final int DEFAULT_OUTPUT_BUFFER_SIZE = 2048;
 
-    private final Endpoint endpoint;
-
     private final Pool<Kryo> kryoPool;
     private final Pool<Input> inputPool;
     private final Pool<Output> outputPool;
 
-    public KryoHolder(Endpoint endpoint) {
-        this.endpoint = endpoint;
+    public KryoHolder(KryoNetty kryoNetty) {
         kryoPool = new Pool<Kryo>(true, true) {
             @Override
             protected Kryo create() {
                 Kryo kryo = new Kryo();
 
                 kryo.setRegistrationRequired(true);
-                kryo.setReferences(false);
+                kryo.setReferences(true);
+                kryo.addDefaultSerializer(Throwable.class, new JavaSerializer());
 
                 kryo.register(HashMap.class);
                 kryo.register(ArrayList.class);
@@ -70,8 +69,8 @@ public class KryoHolder {
                 kryo.register(PriorityQueue.class);
                 kryo.register(BitSet.class);
 
-                if (!endpoint.kryoOptions().getClassesToRegister().isEmpty())
-                    endpoint.kryoOptions().getClassesToRegister().forEach(kryo::register);
+                if (!kryoNetty.getClassesToRegister().isEmpty())
+                    kryoNetty.getClassesToRegister().forEach(kryo::register);
 
                 return kryo;
             }
@@ -79,13 +78,15 @@ public class KryoHolder {
         inputPool = new Pool<Input>(true, true) {
             @Override
             protected Input create() {
-                return new Input(endpoint.kryoOptions().getInputBufferSize() == -1 ? DEFAULT_INPUT_BUFFER_SIZE : endpoint.kryoOptions().getInputBufferSize());
+                return new Input(kryoNetty.getInputBufferSize() == -1 ? DEFAULT_INPUT_BUFFER_SIZE : kryoNetty.getInputBufferSize());
             }
         };
         outputPool = new Pool<Output>(true, true) {
             @Override
             protected Output create() {
-                return new Output(endpoint.kryoOptions().getOutputBufferSize() == -1 ? DEFAULT_OUTPUT_BUFFER_SIZE : endpoint.kryoOptions().getOutputBufferSize(), endpoint.kryoOptions().getMaxOutputBufferSize());
+                return new Output(
+                        kryoNetty.getOutputBufferSize() == -1 ? DEFAULT_OUTPUT_BUFFER_SIZE : kryoNetty.getOutputBufferSize(),
+                        kryoNetty.getMaxOutputBufferSize());
             }
         };
     }

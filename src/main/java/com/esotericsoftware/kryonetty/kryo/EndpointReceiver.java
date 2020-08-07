@@ -6,13 +6,11 @@ public interface EndpointReceiver {
 
     Endpoint.Type type();
 
-    EndpointOptions endpointOptions();
-
-    KryoOptions kryoOptions();
+    KryoNetty kryoNetty();
 
     KryoHolder kryoHolder();
 
     NetworkEventManager eventHandler();
 
-    enum Type {CLIENT, SERVER}
+    enum Type { CLIENT, SERVER }
 }
