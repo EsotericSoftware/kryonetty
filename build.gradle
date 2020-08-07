@@ -1,5 +1,3 @@
-import sun.misc.ExtensionDependency
-
 plugins {
     id 'java'
 }
