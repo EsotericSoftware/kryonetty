@@ -35,7 +35,7 @@ public class KryonettyInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast("encoder", new KryonettyEncoder(endpoint));
 
         if(endpoint.kryoNetty().isUseExecution()) {
-            // and then executed business logic.
+            // and then async-executed business logic.
             pipeline.addLast(executorGroup, this.channelInboundHandler);
         } else {
             // and then business logic.

@@ -39,19 +39,19 @@ public class SimpleTest {
 
         server = new ThreadedServer(kryoNetty);
         server.eventHandler().register(new NetworkListener() {
+
             @NetworkHandler
             public void onConnect(ConnectEvent event) {
                 ChannelHandlerContext ctx = event.getCtx();
                 System.out.println("Server: Client connected: " + ctx.channel().remoteAddress());
                 ctx.channel().write("make a programmer rich");
             }
-        });
-        server.eventHandler().register(new NetworkListener() {
+
             @NetworkHandler
             public void onReceive(ReceiveEvent event) {
                 Object object = event.getObject();
                 ChannelHandlerContext ctx = event.getCtx();
-                System.out.println("Server: Received: " + object);
+                System.out.println("Server: Received: " + object + " from " + ctx.channel().remoteAddress());
                 if (object instanceof TestRequest) {
                     testRequestReceived = true;
                     TestRequest request = (TestRequest) object;
@@ -62,31 +62,30 @@ public class SimpleTest {
                     }
                 }
             }
-        });
-        server.eventHandler().register(new NetworkListener() {
+
             @NetworkHandler
             public void onDisconnect(DisconnectEvent event) {
                 ChannelHandlerContext ctx = event.getCtx();
                 System.out.println("Server: Client disconnected: " + ctx.channel().remoteAddress());
             }
+
         });
 
 
         client = new ThreadedClient(kryoNetty);
-
         client.eventHandler().register(new NetworkListener() {
+
             @NetworkHandler
             public void onConnect(ConnectEvent event) {
                 ChannelHandlerContext ctx = event.getCtx();
                 System.out.println("Client: Connected to server: " + ctx.channel().remoteAddress());
             }
-        });
-        client.eventHandler().register(new NetworkListener() {
+
             @NetworkHandler
             public void onReceive(ReceiveEvent event) {
                 Object object = event.getObject();
                 ChannelHandlerContext ctx = event.getCtx();
-                System.out.println("Client: Received: " + object);
+                System.out.println("Client: Received: " + object + " from " + ctx.channel().remoteAddress());
                 if(object instanceof TestRequest) {
                     TestRequest request = (TestRequest) object;
                     assertEquals(request.someText, TEST_REQUEST.someText);
@@ -96,8 +95,7 @@ public class SimpleTest {
                     System.out.println("Client: Finished Tests!");
                 }
             }
-        });
-        client.eventHandler().register(new NetworkListener() {
+
             @NetworkHandler
             public void onDisconnect(DisconnectEvent event) {
                 ChannelHandlerContext ctx = event.getCtx();
