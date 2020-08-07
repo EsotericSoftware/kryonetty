@@ -8,7 +8,7 @@ public interface EndpointReceiver {
 
     KryoNetty kryoNetty();
 
-    KryoSerialization kryoHolder();
+    KryoSerialization kryoSerialization();
 
     NetworkEventManager eventHandler();
 

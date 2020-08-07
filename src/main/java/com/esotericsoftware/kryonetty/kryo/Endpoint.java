@@ -16,7 +16,7 @@ public abstract class Endpoint implements EndpointReceiver {
 	}
 
 	@Override
-	public KryoSerialization kryoHolder() {
+	public KryoSerialization kryoSerialization() {
 		return this.kryoSerialization;
 	}
 
