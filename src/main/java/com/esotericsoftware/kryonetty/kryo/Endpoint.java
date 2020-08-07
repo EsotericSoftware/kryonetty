@@ -6,18 +6,18 @@ import com.esotericsoftware.kryonetty.network.handler.NetworkEventManager;
 public abstract class Endpoint implements EndpointReceiver {
 
 	private final KryoNetty kryoNetty;
-	private final KryoHolder kryoHolder;
+	private final KryoSerialization kryoSerialization;
 	private final NetworkEventManager networkEventManager;
 
 	public Endpoint(KryoNetty kryoNetty) {
 		this.kryoNetty = kryoNetty;
-		this.kryoHolder = new KryoHolder(kryoNetty);
+		this.kryoSerialization = new KryoSerialization(kryoNetty);
 		this.networkEventManager = new NetworkEventManager();
 	}
 
 	@Override
-	public KryoHolder kryoHolder() {
-		return this.kryoHolder;
+	public KryoSerialization kryoHolder() {
+		return this.kryoSerialization;
 	}
 
 	@Override

@@ -12,7 +12,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.*;
 
-public class KryoHolder {
+public class KryoSerialization {
 
     private static final int DEFAULT_INPUT_BUFFER_SIZE = 2048;
     private static final int DEFAULT_OUTPUT_BUFFER_SIZE = 2048;
@@ -21,7 +21,7 @@ public class KryoHolder {
     private final Pool<Input> inputPool;
     private final Pool<Output> outputPool;
 
-    public KryoHolder(KryoNetty kryoNetty) {
+    public KryoSerialization(KryoNetty kryoNetty) {
         kryoPool = new Pool<Kryo>(true, true) {
             @Override
             protected Kryo create() {
