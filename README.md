@@ -135,8 +135,8 @@ New `Listener`-Instance in `register(NetworkListener listener)`:
 
 ## KryoHolder
 
-Since we work with a `Kryo.class`, `Input.class` & `Output.class` in a `Pool<?>` from `kryo-5.0.0`, classes are passed to the `KryoHolder.class` constructor for registration & initialization.
-Here for example KryoNetty is used to pass the parameters `inputBufferSize`, `outputBufferSize`, `maxOutputBufferSize` & the classes, which should be registered. 
+Since we work with a `Kryo`, `Input` & `Output` in a `Pool<?>` from `kryo-5.0.0`, classes are passed to the `KryoHolder.class` constructor for registration & initialization.
+Here for example `KryoNetty` is used to pass the parameters `inputBufferSize`, `outputBufferSize`, `maxOutputBufferSize` & classes, which should be registered. 
 
-Please use the [KryoNet discussion group](http://groups.google.com/group/kryonet-users) for [Kryo](https://github.com/EsotericSoftware/kryo)-specific support.
+Please use the [KryoNet discussion group](http://groups.google.com/group/kryonet-users) for [Kryo](https://github.com/EsotericSoftware/kryo)-specific support. <br>
 Use the [LevenProxy Discord Server](https://discord.levenproxy.eu/) for `KryoNetty` support.
