@@ -1,11 +1,9 @@
 package com.esotericsoftware.kryonetty;
 
+import io.netty.channel.ChannelHandlerContext;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import com.esotericsoftware.kryo.Kryo;
-
-import io.netty.channel.ChannelHandlerContext;
 
 /**
  * An implementation of Server that uses the listener model as per KryoNet.
@@ -13,12 +11,14 @@ import io.netty.channel.ChannelHandlerContext;
  *
  */
 public class ServerListenerImpl extends Server {
+
+	private final KryoHolder kryoHolder;
 	private List<Listener> listeners;
-	private Kryo kryo;
 
 
 	public ServerListenerImpl () {
 		super();
+		kryoHolder = new KryoHolder(32768, 32768, null);
 		listeners = new ArrayList<Listener>();
 	}
 	
@@ -48,8 +48,8 @@ public class ServerListenerImpl extends Server {
 	}
 
 	@Override
-	public Kryo getKryo () {
-		return kryo;
+	public KryoHolder getKryoHolder() {
+		return kryoHolder;
 	}
 
 }

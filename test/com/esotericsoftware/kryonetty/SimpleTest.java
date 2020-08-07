@@ -1,17 +1,14 @@
 
 package com.esotericsoftware.kryonetty;
 
-import static org.junit.Assert.assertTrue;
-
-import java.net.InetSocketAddress;
-
+import io.netty.channel.ChannelHandlerContext;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.esotericsoftware.kryo.Kryo;
+import java.net.InetSocketAddress;
 
-import io.netty.channel.ChannelHandlerContext;
+import static org.junit.Assert.assertTrue;
 
 public class SimpleTest {
 	protected static boolean testRequestReceived;
@@ -37,8 +34,9 @@ public class SimpleTest {
 				}
 			}
 
-			public Kryo getKryo () {
-				return new Kryo();
+			@Override
+			public KryoHolder getKryoHolder() {
+				return new KryoHolder(-1, -1, String.class, TestRequest.class);
 			}
 		};
 		client = new Client() {
@@ -54,8 +52,9 @@ public class SimpleTest {
 				System.out.println("Client: Received: " + object);
 			}
 
-			public Kryo getKryo () {
-				return new Kryo();
+			@Override
+			public KryoHolder getKryoHolder() {
+				return new KryoHolder(-1, -1, String.class, TestRequest.class);
 			}
 		};
 		
@@ -79,8 +78,6 @@ public class SimpleTest {
 	@Test
 	public void testCustomClass() throws Exception {
 		System.out.println("== Test Custom Class Behaviour == ");
-		client.getKryo().register(TestRequest.class);
-		server.getKryo().register(TestRequest.class);
 		TestRequest request = new TestRequest();
 		request.someText = "Bwuk!";
 		client.send(request);
