@@ -1,4 +1,0 @@
-version: 0.2
----
-Build.build(project);
-Build.oneJAR(project);
