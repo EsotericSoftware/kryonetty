@@ -1,11 +1,19 @@
 
 package com.esotericsoftware.kryonetty;
 
+import com.esotericsoftware.kryonetty.kryo.Endpoint;
+import com.esotericsoftware.kryonetty.kryo.EndpointOptions;
+import com.esotericsoftware.kryonetty.kryo.KryoOptions;
+import com.esotericsoftware.kryonetty.netty.KryonettyHandler;
+import com.esotericsoftware.kryonetty.netty.KryonettyInitializer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
@@ -13,71 +21,78 @@ import java.net.SocketAddress;
 
 /**
  * Provides a skeleton Endpoint implementation using Netty IO.
+ *
  * @author Nathan Sweet
  */
-public abstract class Client implements Endpoint {
-	/**
-	 * Netty bootstrap object used to create the channel.
-	 */
-	private Bootstrap bootstrap;
-	/**
-	 * Netty channel used to write objects on.
-	 */
-	private Channel channel;
-	/**
-	 * Netty EventLoopGroup used for events.
-	 */
-	private EventLoopGroup group;
-	/**
-	 * Connection timeout in milliseconds
-	 */
-	private static final int CONNECT_TIMEOUT = 5000;
-	
-	/**
-	 * Create a new client connected to the given socket.
-	 */
-	public Client() {
-		group = new NioEventLoopGroup();
-		
-		bootstrap = new Bootstrap();
-		bootstrap.group(group)
-				.channel(NioSocketChannel.class)
-				.option(ChannelOption.TCP_NODELAY, true)
-				.handler(new KryonettyClientInitializer(this));
-	}
+public abstract class Client extends Endpoint {
 
-	/**
-	 * Write the given object to the channel.
-	 * @param obj
-	 */
-	public void send(Object obj) throws InterruptedException {
-		ChannelFuture lastWriteFuture = null;
-		lastWriteFuture = channel.writeAndFlush(obj);
-		
-		if (lastWriteFuture != null) {
-			lastWriteFuture.sync();
-      }
-	}
+    private final Bootstrap bootstrap;
+    private final EventLoopGroup group;
+    private Channel channel;
 
-	/**
-	 * Close the channel.
-	 */
-	public void close () {
-		channel.close();
-		channel = null;
-	}
-	
-	public void connect(SocketAddress serverAddress) {
-		try {
-			// Start the client
-         ChannelFuture f = bootstrap.connect(serverAddress);
-         channel = f.sync().channel();
-         
-         // Wait until the connection is closed.
+    public Client(KryoOptions kryoOptions, EndpointOptions endpointOptions) {
+        super(kryoOptions, endpointOptions);
+
+        boolean isEpoll = Epoll.isAvailable();
+
+        this.group = isEpoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
+
+        this.bootstrap = new Bootstrap()
+                .group(group)
+                .channel(isEpoll ? EpollSocketChannel.class : NioSocketChannel.class)
+                .option(ChannelOption.TCP_NODELAY, true)
+                .handler(new KryonettyInitializer(this, new KryonettyHandler(this)));
+    }
+
+    /**
+     * Write the given object to the channel.
+     *
+     * @param object
+     */
+    public ChannelFuture send(Object object) throws InterruptedException {
+        return send(object, true);
+    }
+
+    /**
+     * Write the given object to the channel.
+     *
+     * @param object
+     * @param sync
+     */
+    public ChannelFuture send(Object object, boolean sync) throws InterruptedException {
+        if (sync) {
+            return channel.writeAndFlush(object).sync();
+        } else {
+            return channel.writeAndFlush(object);
+        }
+    }
+
+    /**
+     * Close the channel.
+     */
+    public void close() {
+        channel.close();
+        channel = null;
+        group.shutdownGracefully();
+    }
+
+    public void connect(SocketAddress serverAddress) {
+        try {
+            // Start the client
+            ChannelFuture f = bootstrap.connect(serverAddress);
+            channel = f.sync().channel();
+
+            // Wait until the connection is closed.
 //         ChannelFuture testFuture = channel.closeFuture().sync();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public Type type() {
+        return Type.CLIENT;
+    }
+
 }

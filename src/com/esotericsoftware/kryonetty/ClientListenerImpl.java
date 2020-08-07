@@ -1,5 +1,7 @@
 package com.esotericsoftware.kryonetty;
 
+import com.esotericsoftware.kryonetty.kryo.EndpointOptions;
+import com.esotericsoftware.kryonetty.kryo.KryoOptions;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.util.ArrayList;
@@ -12,13 +14,10 @@ import java.util.List;
  */
 public class ClientListenerImpl extends Client {
 
-	private final KryoHolder kryoHolder;
 	private List<Listener> listeners;
 
-
-	public ClientListenerImpl () {
-		super();
-		kryoHolder = new KryoHolder(32768, 32768, null);
+	public ClientListenerImpl (KryoOptions options, EndpointOptions endpointOptions) {
+		super(options, endpointOptions);
 		listeners = new ArrayList<Listener>();
 	}
 	
@@ -45,11 +44,6 @@ public class ClientListenerImpl extends Client {
 		for(Listener listener : listeners) {
 			listener.received(ctx, object);
 		}
-	}
-
-	@Override
-	public KryoHolder getKryoHolder() {
-		return kryoHolder;
 	}
 
 }

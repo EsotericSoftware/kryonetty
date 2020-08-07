@@ -1,18 +1,14 @@
-package com.esotericsoftware.kryonetty;
+package com.esotericsoftware.kryonetty.netty;
 
-import java.net.InetAddress;
-import java.util.Date;
-
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
+import com.esotericsoftware.kryonetty.kryo.Endpoint;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-public class KryonettyServerHandler extends SimpleChannelInboundHandler<Object> {
-	
+public class KryonettyHandler extends SimpleChannelInboundHandler<Object> {
+
 	final Endpoint endpoint;
-	
-	public KryonettyServerHandler(Endpoint endpoint) {
+
+	public KryonettyHandler(Endpoint endpoint) {
 		this.endpoint = endpoint;
 	}
 

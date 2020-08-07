@@ -1,7 +1,8 @@
-package com.esotericsoftware.kryonetty;
+package com.esotericsoftware.kryonetty.netty;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryonetty.kryo.Endpoint;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -36,13 +37,13 @@ public class KryonettyDecoder extends ByteToMessageDecoder {
 		byte[] buf = new byte[len];
 		buffer.readBytes(buf);
 
-		Kryo kryo = endpoint.getKryoHolder().getKryo();
-		Input input = endpoint.getKryoHolder().getInput();
+		Kryo kryo = endpoint.kryoHolder().getKryo();
+		Input input = endpoint.kryoHolder().getInput();
 		input.setInputStream(new ByteArrayInputStream(buf));
 		Object object = kryo.readClassAndObject(input);
 		input.close();
-		endpoint.getKryoHolder().freeKryo(kryo);
-		endpoint.getKryoHolder().freeInput(input);
+		endpoint.kryoHolder().freeKryo(kryo);
+		endpoint.kryoHolder().freeInput(input);
 		out.add(object);
 	}
 }

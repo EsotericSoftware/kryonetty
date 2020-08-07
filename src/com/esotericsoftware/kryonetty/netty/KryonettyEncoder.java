@@ -1,7 +1,8 @@
-package com.esotericsoftware.kryonetty;
+package com.esotericsoftware.kryonetty.netty;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryonetty.kryo.Endpoint;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
@@ -18,8 +19,8 @@ public class KryonettyEncoder extends MessageToByteEncoder {
 
 	protected void encode (ChannelHandlerContext ctx, Object object, ByteBuf buffer)
 			throws Exception {
-		Kryo kryo = endpoint.getKryoHolder().getKryo();
-		Output output = endpoint.getKryoHolder().getOutput();
+		Kryo kryo = endpoint.kryoHolder().getKryo();
+		Output output = endpoint.kryoHolder().getOutput();
 
 		ByteArrayOutputStream outStream = new ByteArrayOutputStream();
 		output.setOutputStream(outStream);
@@ -31,7 +32,7 @@ public class KryonettyEncoder extends MessageToByteEncoder {
 		byte[] outArray = outStream.toByteArray();
 		buffer.writeShort(outArray.length);
 		buffer.writeBytes(outArray);
-		endpoint.getKryoHolder().freeOutput(output);
-		endpoint.getKryoHolder().freeKryo(kryo);
+		endpoint.kryoHolder().freeOutput(output);
+		endpoint.kryoHolder().freeKryo(kryo);
 	}
 }
