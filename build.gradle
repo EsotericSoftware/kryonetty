@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.esotericsoftware'
-version '0.6.1'
+version '0.6.2'
 
 sourceCompatibility = 1.8
 
