@@ -4,8 +4,8 @@ package com.esotericsoftware.kryonetty;
 import com.esotericsoftware.kryonetty.kryo.Endpoint;
 import com.esotericsoftware.kryonetty.kryo.EndpointOptions;
 import com.esotericsoftware.kryonetty.kryo.KryoOptions;
-import com.esotericsoftware.kryonetty.netty.KryonettyHandler;
-import com.esotericsoftware.kryonetty.netty.KryonettyInitializer;
+import com.esotericsoftware.kryonetty.pipeline.KryonettyHandler;
+import com.esotericsoftware.kryonetty.pipeline.KryonettyInitializer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -24,7 +24,7 @@ import java.net.SocketAddress;
  *
  * @author Nathan Sweet
  */
-public abstract class Client extends Endpoint {
+public class Client extends Endpoint {
 
     private final Bootstrap bootstrap;
     private final EventLoopGroup group;
@@ -45,12 +45,12 @@ public abstract class Client extends Endpoint {
     }
 
     /**
-     * Write the given object to the channel.
+     * Write the given object to the channel. This will be processed async
      *
      * @param object
      */
     public ChannelFuture send(Object object) throws InterruptedException {
-        return send(object, true);
+        return send(object, false);
     }
 
     /**
@@ -71,9 +71,10 @@ public abstract class Client extends Endpoint {
      * Close the channel.
      */
     public void close() {
+        eventHandler().unregisterAll();
+        group.shutdownGracefully();
         channel.close();
         channel = null;
-        group.shutdownGracefully();
     }
 
     public void connect(SocketAddress serverAddress) {

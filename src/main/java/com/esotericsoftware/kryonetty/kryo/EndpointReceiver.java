@@ -1,14 +1,8 @@
 package com.esotericsoftware.kryonetty.kryo;
 
-import io.netty.channel.ChannelHandlerContext;
+import com.esotericsoftware.kryonetty.network.handler.NetworkEventManager;
 
 public interface EndpointReceiver {
-
-    void connected(ChannelHandlerContext ctx);
-
-    void disconnected(ChannelHandlerContext ctx);
-
-    void received(ChannelHandlerContext ctx, Object object);
 
     Endpoint.Type type();
 
@@ -17,6 +11,8 @@ public interface EndpointReceiver {
     KryoOptions kryoOptions();
 
     KryoHolder kryoHolder();
+
+    NetworkEventManager eventHandler();
 
     enum Type {CLIENT, SERVER}
 }

@@ -4,13 +4,10 @@ package com.esotericsoftware.kryonetty;
 import com.esotericsoftware.kryonetty.kryo.Endpoint;
 import com.esotericsoftware.kryonetty.kryo.EndpointOptions;
 import com.esotericsoftware.kryonetty.kryo.KryoOptions;
-import com.esotericsoftware.kryonetty.netty.KryonettyHandler;
-import com.esotericsoftware.kryonetty.netty.KryonettyInitializer;
+import com.esotericsoftware.kryonetty.pipeline.KryonettyHandler;
+import com.esotericsoftware.kryonetty.pipeline.KryonettyInitializer;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
@@ -24,7 +21,7 @@ import java.net.InetSocketAddress;
  *
  * @author Nathan Sweet
  */
-public abstract class Server extends Endpoint {
+public class Server extends Endpoint {
 
     private final ServerBootstrap bootstrap;
     private final EventLoopGroup bossGroup;
@@ -61,6 +58,7 @@ public abstract class Server extends Endpoint {
     }
 
     public void close() {
+        eventHandler().unregisterAll();
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
         channel.close();
@@ -68,12 +66,12 @@ public abstract class Server extends Endpoint {
     }
 
     /**
-     * Write the given object to the channel.
+     * Write the given object to the channel. This will be processed async
      *
      * @param object
      */
-    public ChannelFuture send(Channel client, Object object) throws InterruptedException {
-        return send(client, object, true);
+    public ChannelFuture send(ChannelHandlerContext ctx, Object object) throws InterruptedException {
+        return send(ctx, object, false);
     }
 
     /**
@@ -82,11 +80,11 @@ public abstract class Server extends Endpoint {
      * @param object
      * @param sync
      */
-    public ChannelFuture send(Channel client, Object object, boolean sync) throws InterruptedException {
+    public ChannelFuture send(ChannelHandlerContext ctx, Object object, boolean sync) throws InterruptedException {
         if (sync) {
-            return client.writeAndFlush(object).sync();
+            return ctx.writeAndFlush(object).sync();
         } else {
-            return client.writeAndFlush(object);
+            return ctx.writeAndFlush(object);
         }
     }
 

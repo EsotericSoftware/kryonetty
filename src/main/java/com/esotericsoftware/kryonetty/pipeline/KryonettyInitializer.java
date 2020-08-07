@@ -1,9 +1,9 @@
-package com.esotericsoftware.kryonetty.netty;
+package com.esotericsoftware.kryonetty.pipeline;
 
 import com.esotericsoftware.kryonetty.kryo.Endpoint;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -13,12 +13,12 @@ import io.netty.util.concurrent.EventExecutorGroup;
 public class KryonettyInitializer extends ChannelInitializer<SocketChannel> {
 
     private final Endpoint endpoint;
-    private final SimpleChannelInboundHandler<Object> channelHandler;
+    private final ChannelInboundHandlerAdapter channelInboundHandler;
     private final EventExecutorGroup executorGroup;
 
-    public KryonettyInitializer(Endpoint endpoint, SimpleChannelInboundHandler<Object> channelHandler) {
+    public KryonettyInitializer(Endpoint endpoint, ChannelInboundHandlerAdapter channelInboundHandler) {
         this.endpoint = endpoint;
-        this.channelHandler = channelHandler;
+        this.channelInboundHandler = channelInboundHandler;
         this.executorGroup = new DefaultEventExecutorGroup(endpoint.endpointOptions().getExecutionThreadSize());
     }
 
@@ -36,10 +36,10 @@ public class KryonettyInitializer extends ChannelInitializer<SocketChannel> {
 
         if(endpoint.endpointOptions().isUseExecution()) {
             // and then executed business logic.
-            pipeline.addLast(executorGroup, this.channelHandler);
+            pipeline.addLast(executorGroup, this.channelInboundHandler);
         } else {
             // and then business logic.
-            pipeline.addLast(this.channelHandler);
+            pipeline.addLast(this.channelInboundHandler);
         }
     }
 }

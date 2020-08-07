@@ -3,6 +3,11 @@ package com.esotericsoftware.kryonetty;
 
 import com.esotericsoftware.kryonetty.kryo.EndpointOptions;
 import com.esotericsoftware.kryonetty.kryo.KryoOptions;
+import com.esotericsoftware.kryonetty.network.ConnectEvent;
+import com.esotericsoftware.kryonetty.network.DisconnectEvent;
+import com.esotericsoftware.kryonetty.network.ReceiveEvent;
+import com.esotericsoftware.kryonetty.network.handler.NetworkHandler;
+import com.esotericsoftware.kryonetty.network.handler.NetworkListener;
 import io.netty.channel.ChannelHandlerContext;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -16,11 +21,14 @@ import static org.junit.Assert.assertTrue;
 
 public class SimpleTest {
 
-    private static final TestRequest TEST_REQUEST = new TestRequest("I'm not rich. but maybe with tests", 52411, true, Arrays.asList("Test1", "Test2", "Test3", "Test4", "Test5"));
+    public static final TestRequest TEST_REQUEST = new TestRequest("I'm not rich. but maybe with tests", 52411, true, Arrays.asList("Test1", "Test2", "Test3", "Test4", "Test5"));
 
-    protected static boolean testRequestReceived;
-    private static Server server;
-    private static Client client;
+    public static boolean testRequestReceived;
+    public static Server server;
+    public static Client client;
+
+    public SimpleTest() {
+    }
 
     @BeforeClass
     public static void setupClass() {
@@ -31,44 +39,58 @@ public class SimpleTest {
                 .register(TestRequest.class);
 
         EndpointOptions endpointOptions = new EndpointOptions()
-                .useLogging()
                 .useExecution()
                 .threadSize(16);
 
-        server = new Server(kryoOptions, endpointOptions) {
-            public void connected(ChannelHandlerContext ctx) {
+        server = new Server(kryoOptions, endpointOptions);
+        server.eventHandler().register(new NetworkListener() {
+            @NetworkHandler
+            public void onConnect(ConnectEvent event) {
+                ChannelHandlerContext ctx = event.getCtx();
                 System.out.println("Server: Client connected: " + ctx.channel().remoteAddress());
                 ctx.channel().write("make a programmer rich");
             }
-
-            public void disconnected(ChannelHandlerContext ctx) {
-                System.out.println("Server: Client disconnected: " + ctx.channel().remoteAddress());
-            }
-
-            public void received(ChannelHandlerContext ctx, Object object) {
+        });
+        server.eventHandler().register(new NetworkListener() {
+            @NetworkHandler
+            public void onReceive(ReceiveEvent event) {
+                Object object = event.getObject();
+                ChannelHandlerContext ctx = event.getCtx();
                 System.out.println("Server: Received: " + object);
                 if (object instanceof TestRequest) {
                     testRequestReceived = true;
                     TestRequest request = (TestRequest) object;
                     try {
-                        send(ctx.channel(), request);
+                        server.send(ctx, request, false);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             }
+        });
+        server.eventHandler().register(new NetworkListener() {
+            @NetworkHandler
+            public void onDisconnect(DisconnectEvent event) {
+                ChannelHandlerContext ctx = event.getCtx();
+                System.out.println("Server: Client disconnected: " + ctx.channel().remoteAddress());
+            }
+        });
 
-        };
-        client = new Client(kryoOptions, endpointOptions) {
-            public void connected(ChannelHandlerContext ctx) {
+
+        client = new Client(kryoOptions, endpointOptions);
+
+        client.eventHandler().register(new NetworkListener() {
+            @NetworkHandler
+            public void onConnect(ConnectEvent event) {
+                ChannelHandlerContext ctx = event.getCtx();
                 System.out.println("Client: Connected to server: " + ctx.channel().remoteAddress());
             }
-
-            public void disconnected(ChannelHandlerContext ctx) {
-                System.out.println("Client: Disconnected from server: " + ctx.channel().remoteAddress());
-            }
-
-            public void received(ChannelHandlerContext ctx, Object object) {
+        });
+        client.eventHandler().register(new NetworkListener() {
+            @NetworkHandler
+            public void onReceive(ReceiveEvent event) {
+                Object object = event.getObject();
+                ChannelHandlerContext ctx = event.getCtx();
                 System.out.println("Client: Received: " + object);
                 if(object instanceof TestRequest) {
                     TestRequest request = (TestRequest) object;
@@ -76,10 +98,17 @@ public class SimpleTest {
                     assertEquals(request.someLong, TEST_REQUEST.someLong);
                     assertEquals(request.someBoolean, TEST_REQUEST.someBoolean);
                     assertEquals(request.someList, TEST_REQUEST.someList);
+                    System.out.println("Client: Finished Tests!");
                 }
             }
-
-        };
+        });
+        client.eventHandler().register(new NetworkListener() {
+            @NetworkHandler
+            public void onDisconnect(DisconnectEvent event) {
+                ChannelHandlerContext ctx = event.getCtx();
+                System.out.println("Client: Disconnected from server: " + ctx.channel().remoteAddress());
+            }
+        });
 
         server.start(54321);
         client.connect(new InetSocketAddress("localhost", 54321));

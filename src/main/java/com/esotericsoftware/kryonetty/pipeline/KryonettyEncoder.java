@@ -1,4 +1,4 @@
-package com.esotericsoftware.kryonetty.netty;
+package com.esotericsoftware.kryonetty.pipeline;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;

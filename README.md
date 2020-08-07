@@ -4,7 +4,11 @@ KryoNetty is a Java library that provides clean and simple API for efficient TCP
 
 KryoNetty is very similar to [KryoNet](https://github.com/EsotericSoftware/kryonet), which does the exact same thing but using its own NIO-based networking. KryoNet has more features than KryoNetty, which in its current state mostly serves as a simple example of how Kryo can be used with Netty.
 
-# KryoHolder
+# How to configurate a Client-Server-API
+
+## Client-Server
+
+## KryoHolder
 
 Since we work with a `Kryo.class`, `Input.class` & `Output.class` pool from `kryo-5.0.0`, classes are passed to the `KryoHolder.class` constructor for registration. 
 The `inputBufferSize` (first) and the `outputBufferSize` (second) can also be passed. If the value is `-1` the default value of `2048` is used.
