@@ -152,6 +152,25 @@ New `Listener`-Instance in `register(NetworkListener listener)`:
     });
 ```
 
+
+## Add as dependecy
+
+First of all add `jitpack.io` as repository. 
+
+```java
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
+```
+
+After that you can add it as dependency. Tag for example `0.6.3`
+```java
+    dependencies {
+        implementation 'com.github.Koboo:kryonetty:0.6.3'
+    }
+```
+
+
 ## KryoSerialization
 
 Since we work with a `Kryo`, `Input` & `Output` in a `Pool<?>` from `kryo-5.0.0`, classes are passed to the `KryoSerialization` constructor for registration & initialization.
