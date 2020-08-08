@@ -53,7 +53,7 @@ public class Client extends Endpoint {
      *
      * @param object
      */
-    public ChannelFuture send(Object object) throws InterruptedException {
+    public ChannelFuture send(Object object) {
         return send(object, false);
     }
 
@@ -63,9 +63,14 @@ public class Client extends Endpoint {
      * @param object
      * @param sync
      */
-    public ChannelFuture send(Object object, boolean sync) throws InterruptedException {
+    public ChannelFuture send(Object object, boolean sync) {
         if (sync) {
-            return channel.writeAndFlush(object).sync();
+            try {
+                return channel.writeAndFlush(object).sync();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return null;
         } else {
             return channel.writeAndFlush(object);
         }
@@ -85,8 +90,7 @@ public class Client extends Endpoint {
         try {
             // Start the client
 
-            ChannelFuture f = bootstrap.connect(new InetSocketAddress(host, port));
-            channel = f.sync().channel();
+            channel = bootstrap.connect(new InetSocketAddress(host, port)).sync().channel();
 
             // Wait until the connection is closed.
 //         ChannelFuture testFuture = channel.closeFuture().sync();

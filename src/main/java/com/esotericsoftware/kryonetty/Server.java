@@ -76,7 +76,7 @@ public class Server extends Endpoint {
      *
      * @param object
      */
-    public ChannelFuture send(ChannelHandlerContext ctx, Object object) throws InterruptedException {
+    public ChannelFuture send(ChannelHandlerContext ctx, Object object) {
         return send(ctx, object, false);
     }
 
@@ -86,9 +86,14 @@ public class Server extends Endpoint {
      * @param object
      * @param sync
      */
-    public ChannelFuture send(ChannelHandlerContext ctx, Object object, boolean sync) throws InterruptedException {
+    public ChannelFuture send(ChannelHandlerContext ctx, Object object, boolean sync) {
         if (sync) {
-            return ctx.writeAndFlush(object).sync();
+            try {
+                return ctx.writeAndFlush(object).sync();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return null;
         } else {
             return ctx.writeAndFlush(object);
         }
