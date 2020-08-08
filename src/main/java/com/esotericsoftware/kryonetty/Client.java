@@ -48,6 +48,10 @@ public class Client extends Endpoint {
         }
     }
 
+    public boolean isConnected() {
+        return this.channel != null && this.channel.isOpen() && this.channel.isActive();
+    }
+
     /**
      * Write the given object to the channel. This will be processed async
      *
