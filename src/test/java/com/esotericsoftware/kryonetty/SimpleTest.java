@@ -58,19 +58,11 @@ public class SimpleTest extends AbstractBenchmark {
                 if (object instanceof TestRequest) {
                     testRequestReceived = true;
                     TestRequest request = (TestRequest) object;
-                    try {
-                        server.send(ctx, request, false);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    server.send(ctx, request, false);
                 }
-                if(object instanceof HashMap) {
+                if (object instanceof HashMap) {
                     HashMap<String, TestRequest> hashMap = (HashMap<String, TestRequest>) event.getObject();
-                    try {
-                        server.send(ctx, hashMap, false);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    server.send(ctx, hashMap, false);
                 }
             }
 
@@ -97,7 +89,7 @@ public class SimpleTest extends AbstractBenchmark {
                 Object object = event.getObject();
                 ChannelHandlerContext ctx = event.getCtx();
                 System.out.println("Client: Received: " + object + " from " + ctx.channel().remoteAddress());
-                if(object instanceof TestRequest) {
+                if (object instanceof TestRequest) {
                     TestRequest request = (TestRequest) object;
                     assertEquals(request.someText, TEST_REQUEST.someText);
                     assertEquals(request.someLong, TEST_REQUEST.someLong);
