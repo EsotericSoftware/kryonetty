@@ -13,12 +13,10 @@ import io.netty.util.concurrent.EventExecutorGroup;
 public class KryonettyInitializer extends ChannelInitializer<SocketChannel> {
 
     private final Endpoint endpoint;
-    private final ChannelInboundHandlerAdapter channelInboundHandler;
     private final EventExecutorGroup executorGroup;
 
-    public KryonettyInitializer(Endpoint endpoint, ChannelInboundHandlerAdapter channelInboundHandler) {
+    public KryonettyInitializer(Endpoint endpoint) {
         this.endpoint = endpoint;
-        this.channelInboundHandler = channelInboundHandler;
         this.executorGroup = new DefaultEventExecutorGroup(endpoint.kryoNetty().getExecutionThreadSize());
     }
 
@@ -36,10 +34,10 @@ public class KryonettyInitializer extends ChannelInitializer<SocketChannel> {
 
         if(endpoint.kryoNetty().isUseExecution()) {
             // and then async-executed business logic.
-            pipeline.addLast(executorGroup, this.channelInboundHandler);
+            pipeline.addLast(executorGroup, new KryonettyHandler(endpoint));
         } else {
             // and then business logic.
-            pipeline.addLast(this.channelInboundHandler);
+            pipeline.addLast(new KryonettyHandler(endpoint));
         }
     }
 }
