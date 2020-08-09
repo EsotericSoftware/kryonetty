@@ -4,12 +4,15 @@ KryoNetty is a Java library that provides clean and simple API for efficient TCP
 
 KryoNetty is very similar to [KryoNet](https://github.com/EsotericSoftware/kryonet), which does the exact same thing but using its own NIO-based networking. KryoNet has more features than KryoNetty, which in its current state mostly serves as a simple example of how Kryo can be used with Netty.
 
-## Table of content
+## Documentation
 
 - [KryoNetty](#how-to-kryonetty-works)
 - [Server](#how-to-start-the-server)
 - [Client](#how-to-connect-the-client)
 - [Events](#how-to-register-an-event)
+- [Download](#add-as-dependecy)
+- [Build](#build-from-source)
+- [KryoSerialization](#why-kryoserialization)
 
 
 ## How to KryoNetty works 
@@ -152,6 +155,25 @@ New `Listener`-Instance in `register(NetworkListener listener)`:
     });
 ```
 
+Here an example to process an object which is fired via a `ReceiveEvent`.
+
+```java
+
+    public class ReceiveListener implements NetworkListener {
+        @NetworkHandler
+        public void onReceive(ReceiveEvent event) {
+            ChannelHandlerContext ctx = event.getCtx();
+            Object object = event.getObject();
+            System.out.println("Client received: " + object);
+            if(object instanceof Boolean) {
+                Boolean result = (Boolean) object;
+                System.out.println("Result is: " + result);
+            }
+        }
+    }
+
+```
+
 
 ## Add as dependecy
 
@@ -170,11 +192,33 @@ After that you can add it as dependency. Tag for example `0.6.3`
     }
 ```
 
+## Build from source
 
-## KryoSerialization
+If you want to build `kryonetty` from source, clone this repository and run `./gradlew buildKryoNetty`. The output-file will be in the directory: `/build/libs/kryonetty-{version}-all.jar`
+Gradle downloads the required dependencies and inserts all components into the output-file.
+If you are interested in the build task:
+
+```java
+task buildKryoNetty(type: Jar) {
+    baseName = project.name + '-all'
+    from {
+        configurations.compile.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+    with jar
+}
+```
+
+## Why KryoSerialization
+
+Why do we use Kryo and not for example the Netty ObjectEncoder? Quite simple. Kryo is noticeably faster and also easy to use. 
+(Benchmark links:)
+- https://github.com/EsotericSoftware/kryo#benchmarks
+- https://github.com/eishay/jvm-serializers/wiki
 
 Since we work with a `Kryo`, `Input` & `Output` in a `Pool<?>` from `kryo-5.0.0`, classes are passed to the `KryoSerialization` constructor for registration & initialization.
-Here for example `KryoNetty` is used to pass the parameters `inputBufferSize`, `outputBufferSize`, `maxOutputBufferSize` & classes, which should be registered. 
+For more documentation see `KryoSerialization.class`
 
 Please use the [KryoNet discussion group](http://groups.google.com/group/kryonet-users) for [Kryo](https://github.com/EsotericSoftware/kryo)/[KryoNet](https://github.com/EsotericSoftware/kryonet)-specific support. <br>
 Use the [LevenProxy Discord Server](https://discord.levenproxy.eu/) for `KryoNetty-dev` support.
