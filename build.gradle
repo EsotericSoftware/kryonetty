@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.esotericsoftware'
-version '0.6.1'
+version '0.6.4'
 
 sourceCompatibility = 1.8
 
@@ -21,6 +21,7 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile group: 'com.carrotsearch', name: 'junit-benchmarks', version: '0.7.2'
 
     compile group: 'io.netty', name: 'netty-all', version: '4.1.51.Final'
     compile group: 'com.esotericsoftware', name: 'kryo', version: '5.0.0-RC8'

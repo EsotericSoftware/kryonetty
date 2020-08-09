@@ -1,6 +1,7 @@
 
 package com.esotericsoftware.kryonetty;
 
+import com.carrotsearch.junitbenchmarks.AbstractBenchmark;
 import com.esotericsoftware.kryonetty.kryo.KryoNetty;
 import com.esotericsoftware.kryonetty.network.ConnectEvent;
 import com.esotericsoftware.kryonetty.network.DisconnectEvent;
@@ -13,11 +14,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class SimpleTest {
+public class SimpleTest extends AbstractBenchmark {
 
     public static final TestRequest TEST_REQUEST = new TestRequest("I'm not rich, but maybe with tests", 52411, true, Arrays.asList("Test1", "Test2", "Test3", "Test4", "Test5"));
 
@@ -55,11 +58,11 @@ public class SimpleTest {
                 if (object instanceof TestRequest) {
                     testRequestReceived = true;
                     TestRequest request = (TestRequest) object;
-                    try {
-                        server.send(ctx, request, false);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    server.send(ctx, request, false);
+                }
+                if (object instanceof HashMap) {
+                    HashMap<String, TestRequest> hashMap = (HashMap<String, TestRequest>) event.getObject();
+                    server.send(ctx, hashMap, false);
                 }
             }
 
@@ -86,7 +89,7 @@ public class SimpleTest {
                 Object object = event.getObject();
                 ChannelHandlerContext ctx = event.getCtx();
                 System.out.println("Client: Received: " + object + " from " + ctx.channel().remoteAddress());
-                if(object instanceof TestRequest) {
+                if (object instanceof TestRequest) {
                     TestRequest request = (TestRequest) object;
                     assertEquals(request.someText, TEST_REQUEST.someText);
                     assertEquals(request.someLong, TEST_REQUEST.someLong);
@@ -114,17 +117,27 @@ public class SimpleTest {
     }
 
     @Test
-    public void testSimple() throws Exception {
-        System.out.println("== Test Simple Behaviour == ");
+    public void testString() throws Exception {
+        System.out.println("== Test String Behaviour == ");
         client.send("i like the way you do it right thurrrr");
-        Thread.sleep(1000);
+        Thread.sleep(500);
     }
 
     @Test
-    public void testCustomClass() throws Exception {
-        System.out.println("== Test Custom Class Behaviour == ");
+    public void testRequestClass() throws Exception {
+        System.out.println("== Test Request Class Behaviour == ");
         client.send(TEST_REQUEST);
-        Thread.sleep(1000);
+        Thread.sleep(500);
+        assertTrue(testRequestReceived);
+    }
+
+    @Test
+    public void testMap() throws Exception {
+        System.out.println("== Test Map Behaviour == ");
+        HashMap<String, TestRequest> hashMap = new HashMap<>();
+        IntStream.range(0, 50).forEach(i -> hashMap.put("id#" + i, TEST_REQUEST));
+        client.send(hashMap);
+        Thread.sleep(500);
         assertTrue(testRequestReceived);
     }
 }

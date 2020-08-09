@@ -31,16 +31,21 @@ public class Client extends Endpoint {
     public Client(KryoNetty kryoNetty) {
         super(kryoNetty);
 
+        // inline epoll-variable
         boolean isEpoll = Epoll.isAvailable();
 
+        // Check for eventloop-group
         this.group = isEpoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
 
+        // Create Bootstrap
         this.bootstrap = new Bootstrap()
                 .group(group)
                 .channel(isEpoll ? EpollSocketChannel.class : NioSocketChannel.class)
                 .handler(new KryonettyInitializer(this, new KryonettyHandler(this)))
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+
+        // Check for extra epoll-options
         if(isEpoll) {
             bootstrap
                     .option(EpollChannelOption.EPOLL_MODE, EpollMode.EDGE_TRIGGERED)
@@ -48,12 +53,20 @@ public class Client extends Endpoint {
         }
     }
 
+
+    /**
+     * Return if the client is connected or not
+     */
+    public boolean isConnected() {
+        return this.channel != null && this.channel.isOpen() && this.channel.isActive();
+    }
+
     /**
      * Write the given object to the channel. This will be processed async
      *
      * @param object
      */
-    public ChannelFuture send(Object object) throws InterruptedException {
+    public ChannelFuture send(Object object) {
         return send(object, false);
     }
 
@@ -63,9 +76,14 @@ public class Client extends Endpoint {
      * @param object
      * @param sync
      */
-    public ChannelFuture send(Object object, boolean sync) throws InterruptedException {
+    public ChannelFuture send(Object object, boolean sync) {
         if (sync) {
-            return channel.writeAndFlush(object).sync();
+            try {
+                return channel.writeAndFlush(object).sync();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return null;
         } else {
             return channel.writeAndFlush(object);
         }
@@ -81,21 +99,21 @@ public class Client extends Endpoint {
         channel = null;
     }
 
+    /**
+     * Connects the client to the given host and port
+     */
     public void connect(String host, int port) {
         try {
-            // Start the client
-
-            ChannelFuture f = bootstrap.connect(new InetSocketAddress(host, port));
-            channel = f.sync().channel();
-
-            // Wait until the connection is closed.
-//         ChannelFuture testFuture = channel.closeFuture().sync();
+            // Start the client and wait for the connection to be established.
+            channel = bootstrap.connect(new InetSocketAddress(host, port)).sync().channel();
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
+    /**
+     * @return Gives the type server or client
+     */
     @Override
     public Type type() {
         return Type.CLIENT;

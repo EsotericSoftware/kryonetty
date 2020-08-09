@@ -29,7 +29,7 @@ public class KryonettyHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        endpoint.eventHandler().callEvent(new ReceiveEvent(ctx, msg));
+        ctx.executor().execute(() -> endpoint.eventHandler().callEvent(new ReceiveEvent(ctx, msg)));
     }
 
     @Override

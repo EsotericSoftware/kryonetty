@@ -50,19 +50,21 @@ public class Server extends Endpoint {
         }
     }
 
+    /**
+     * Let the server bind to the given port
+     */
     public void start(int port) {
         try {
-            // Start the server.
-            ChannelFuture f = bootstrap.bind(new InetSocketAddress(port));
-            channel = f.sync().channel();
-
-            // Wait until the server socket is closed.
-            //f.channel().closeFuture().sync();
+            // Start the server and wait for socket to be bind to the given port
+            channel = bootstrap.bind(new InetSocketAddress(port)).sync().channel();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Closes the server socket.
+     */
     public void close() {
         eventHandler().unregisterAll();
         bossGroup.shutdownGracefully();
@@ -76,7 +78,7 @@ public class Server extends Endpoint {
      *
      * @param object
      */
-    public ChannelFuture send(ChannelHandlerContext ctx, Object object) throws InterruptedException {
+    public ChannelFuture send(ChannelHandlerContext ctx, Object object) {
         return send(ctx, object, false);
     }
 
@@ -86,14 +88,22 @@ public class Server extends Endpoint {
      * @param object
      * @param sync
      */
-    public ChannelFuture send(ChannelHandlerContext ctx, Object object, boolean sync) throws InterruptedException {
+    public ChannelFuture send(ChannelHandlerContext ctx, Object object, boolean sync) {
         if (sync) {
-            return ctx.writeAndFlush(object).sync();
+            try {
+                return ctx.writeAndFlush(object).sync();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return null;
         } else {
             return ctx.writeAndFlush(object);
         }
     }
 
+    /**
+     * @return Gives the type server or client
+     */
     @Override
     public Type type() {
         return Type.SERVER;
