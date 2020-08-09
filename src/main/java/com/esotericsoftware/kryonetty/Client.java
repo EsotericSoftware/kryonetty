@@ -31,16 +31,21 @@ public class Client extends Endpoint {
     public Client(KryoNetty kryoNetty) {
         super(kryoNetty);
 
+        // inline epoll-variable
         boolean isEpoll = Epoll.isAvailable();
 
+        // Check for eventloop-group
         this.group = isEpoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
 
+        // Create Bootstrap
         this.bootstrap = new Bootstrap()
                 .group(group)
                 .channel(isEpoll ? EpollSocketChannel.class : NioSocketChannel.class)
                 .handler(new KryonettyInitializer(this, new KryonettyHandler(this)))
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+
+        // Check for extra epoll-options
         if(isEpoll) {
             bootstrap
                     .option(EpollChannelOption.EPOLL_MODE, EpollMode.EDGE_TRIGGERED)
@@ -48,6 +53,10 @@ public class Client extends Endpoint {
         }
     }
 
+
+    /**
+     * Return if the client is connected or not
+     */
     public boolean isConnected() {
         return this.channel != null && this.channel.isOpen() && this.channel.isActive();
     }
@@ -90,20 +99,21 @@ public class Client extends Endpoint {
         channel = null;
     }
 
+    /**
+     * Connects the client to the given host and port
+     */
     public void connect(String host, int port) {
         try {
-            // Start the client
-
+            // Start the client and wait for the connection to be established.
             channel = bootstrap.connect(new InetSocketAddress(host, port)).sync().channel();
-
-            // Wait until the connection is closed.
-//         ChannelFuture testFuture = channel.closeFuture().sync();
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
+    /**
+     * @return Gives the type server or client
+     */
     @Override
     public Type type() {
         return Type.CLIENT;

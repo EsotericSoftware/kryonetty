@@ -50,19 +50,21 @@ public class Server extends Endpoint {
         }
     }
 
+    /**
+     * Let the server bind to the given port
+     */
     public void start(int port) {
         try {
-            // Start the server.
-            ChannelFuture f = bootstrap.bind(new InetSocketAddress(port));
-            channel = f.sync().channel();
-
-            // Wait until the server socket is closed.
-            //f.channel().closeFuture().sync();
+            // Start the server and wait for socket to be bind to the given port
+            channel = bootstrap.bind(new InetSocketAddress(port)).sync().channel();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Closes the server socket.
+     */
     public void close() {
         eventHandler().unregisterAll();
         bossGroup.shutdownGracefully();
@@ -99,6 +101,9 @@ public class Server extends Endpoint {
         }
     }
 
+    /**
+     * @return Gives the type server or client
+     */
     @Override
     public Type type() {
         return Type.SERVER;

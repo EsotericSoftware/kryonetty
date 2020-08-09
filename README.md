@@ -29,7 +29,7 @@ KryoNetty is very similar to [KryoNet](https://github.com/EsotericSoftware/kryon
         .register(TestRequest.class);
 ```
 
-To register more classes than one:
+Please note that Kryo gives every class an index-number. If you change the order, errors may occur if both programs do not have the same order of registered classes. To register more classes than one.
 
 ```java
     KryoNetty kryoNetty = new KryoNetty()
