@@ -37,7 +37,7 @@ public class Server extends Endpoint {
         this.bootstrap = new ServerBootstrap()
                 .group(bossGroup, workerGroup)
                 .channel(isEpoll ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
-                .childHandler(new KryonettyInitializer(this, new KryonettyHandler(this)))
+                .childHandler(new KryonettyInitializer(this))
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childOption(ChannelOption.TCP_NODELAY, true)

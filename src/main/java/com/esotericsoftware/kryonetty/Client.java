@@ -41,7 +41,7 @@ public class Client extends Endpoint {
         this.bootstrap = new Bootstrap()
                 .group(group)
                 .channel(isEpoll ? EpollSocketChannel.class : NioSocketChannel.class)
-                .handler(new KryonettyInitializer(this, new KryonettyHandler(this)))
+                .handler(new KryonettyInitializer(this))
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
