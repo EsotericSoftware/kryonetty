@@ -70,10 +70,7 @@ public class KryoSerialization {
                 kryo.register(BitSet.class);
 
                 if (!kryoNetty.getClassesToRegister().isEmpty())
-                    kryoNetty.getClassesToRegister().forEach(clazz -> {
-                        System.out.println(clazz.getSimpleName());
-                        kryo.register(clazz);
-                    });
+                    kryoNetty.getClassesToRegister().forEach(kryo::register);
 
                 return kryo;
             }
