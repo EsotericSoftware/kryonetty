@@ -3,7 +3,6 @@ package com.esotericsoftware.kryonetty;
 
 import com.esotericsoftware.kryonetty.kryo.Endpoint;
 import com.esotericsoftware.kryonetty.kryo.KryoNetty;
-import com.esotericsoftware.kryonetty.pipeline.KryonettyHandler;
 import com.esotericsoftware.kryonetty.pipeline.KryonettyInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -29,11 +28,16 @@ public class Server extends Endpoint {
     public Server(KryoNetty kryoNetty) {
         super(kryoNetty);
 
+        // Note: We don't support KQueue. Boycott OSX and FreeBSD :P
+
+        // inline epoll-variable
         boolean isEpoll = Epoll.isAvailable();
 
+        // Check for eventloop-groups
         this.bossGroup = isEpoll ? new EpollEventLoopGroup(1) : new NioEventLoopGroup(1);
         this.workerGroup = isEpoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
 
+        // Create ServerBootstrap
         this.bootstrap = new ServerBootstrap()
                 .group(bossGroup, workerGroup)
                 .channel(isEpoll ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
@@ -42,6 +46,8 @@ public class Server extends Endpoint {
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_REUSEADDR, true);
+
+        // Check for extra epoll-options
         if(isEpoll) {
             bootstrap
                     .childOption(EpollChannelOption.EPOLL_MODE, EpollMode.EDGE_TRIGGERED)
@@ -66,11 +72,15 @@ public class Server extends Endpoint {
      * Closes the server socket.
      */
     public void close() {
+        // unregister network-events
         eventHandler().unregisterAll();
+
+        // shutdown eventloop-groups
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
+
+        // close server-channel
         channel.close();
-        channel = null;
     }
 
     /**
@@ -79,6 +89,7 @@ public class Server extends Endpoint {
      * @param object
      */
     public ChannelFuture send(ChannelHandlerContext ctx, Object object) {
+        // use send-method, default-behaviour: async
         return send(ctx, object, false);
     }
 

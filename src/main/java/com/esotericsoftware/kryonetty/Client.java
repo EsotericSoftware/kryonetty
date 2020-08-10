@@ -3,7 +3,6 @@ package com.esotericsoftware.kryonetty;
 
 import com.esotericsoftware.kryonetty.kryo.Endpoint;
 import com.esotericsoftware.kryonetty.kryo.KryoNetty;
-import com.esotericsoftware.kryonetty.pipeline.KryonettyHandler;
 import com.esotericsoftware.kryonetty.pipeline.KryonettyInitializer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -30,6 +29,8 @@ public class Client extends Endpoint {
 
     public Client(KryoNetty kryoNetty) {
         super(kryoNetty);
+
+        // Note: We don't support KQueue. Boycott OSX and FreeBSD :P
 
         // inline epoll-variable
         boolean isEpoll = Epoll.isAvailable();
