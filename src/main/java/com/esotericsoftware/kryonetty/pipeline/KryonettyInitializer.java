@@ -30,9 +30,10 @@ public class KryonettyInitializer extends ChannelInitializer<SocketChannel> {
         }
 
         // kryo codecs
-        pipeline.addLast("flow-control", new FlowControlHandler());
         pipeline.addLast("decoder", new KryonettyDecoder(endpoint));
         pipeline.addLast("encoder", new KryonettyEncoder(endpoint));
+        pipeline.addLast("flow-control", new FlowControlHandler());
+        pipeline.addLast("flush-handler", new FlushConsolidationHandler());
 
         if(endpoint.kryoNetty().isUseExecution()) {
             // and then async-executed business logic.
@@ -41,6 +42,5 @@ public class KryonettyInitializer extends ChannelInitializer<SocketChannel> {
             // and then business logic.
             pipeline.addLast(new KryonettyHandler(endpoint));
         }
-        pipeline.addLast("flush-handler", new FlushConsolidationHandler(1024, true));
     }
 }
