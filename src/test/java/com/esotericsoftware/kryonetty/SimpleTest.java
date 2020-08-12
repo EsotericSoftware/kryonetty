@@ -32,7 +32,6 @@ public class SimpleTest extends AbstractBenchmark {
     public static void setupClass() {
 
         KryoNetty kryoNetty = new KryoNetty()
-                .useLogging()
                 .useExecution()
                 .threadSize(16)
                 .inputSize(4096)
