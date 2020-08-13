@@ -5,12 +5,12 @@ import com.esotericsoftware.kryonetty.network.handler.NetworkEventManager;
 public interface EndpointReceiver {
 
     /**
-     * @return Gives the type server or client
+     * @return Returns the type // server or client
      */
     Endpoint.Type type();
 
     /**
-     * @return Give to the type server or client
+     * @return Returns the KryoNetty instance
      */
     KryoNetty kryoNetty();
 
