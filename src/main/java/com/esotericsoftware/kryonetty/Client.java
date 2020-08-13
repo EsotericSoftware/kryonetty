@@ -90,6 +90,12 @@ public class Client extends Endpoint {
         }
     }
 
+    public void reconnect(String host, int port) {
+        channel.close();
+        channel = null;
+        connect(host, port);
+    }
+
     /**
      * Close the channel.
      */
