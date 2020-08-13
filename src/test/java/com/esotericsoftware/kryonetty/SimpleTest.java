@@ -139,4 +139,14 @@ public class SimpleTest extends AbstractBenchmark {
         Thread.sleep(500);
         assertTrue(testRequestReceived);
     }
+
+    @Test
+    public void testReconnect() throws Exception {
+        System.out.println("== Test Reconnect Behaviour == ");
+        client.send("i like the way you do it right thurrrr First");
+        client.reconnect("localhost", 54321);
+        client.send("i like the way you do it right thurrrr Second");
+        Thread.sleep(500);
+        assertTrue(testRequestReceived);
+    }
 }
