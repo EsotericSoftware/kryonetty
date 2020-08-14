@@ -78,16 +78,18 @@ public class Client extends Endpoint {
      * @param sync
      */
     public ChannelFuture send(Object object, boolean sync) {
-        if (sync) {
-            try {
-                return channel.writeAndFlush(object).sync();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        if(isConnected()) {
+            if (sync) {
+                try {
+                    return channel.writeAndFlush(object).sync();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                return channel.writeAndFlush(object);
             }
-            return null;
-        } else {
-            return channel.writeAndFlush(object);
         }
+        return null;
     }
 
     public void reconnect(String host, int port) {
@@ -95,7 +97,9 @@ public class Client extends Endpoint {
             channel.close();
             channel = null;
         }
-        connect(host, port);
+        if(!isConnected()) {
+            connect(host, port);
+        }
     }
 
     /**
@@ -104,19 +108,23 @@ public class Client extends Endpoint {
     public void close() {
         eventHandler().unregisterAll();
         group.shutdownGracefully();
-        channel.close();
-        channel = null;
+        if(channel != null) {
+            channel.close();
+            channel = null;
+        }
     }
 
     /**
      * Connects the client to the given host and port
      */
     public void connect(String host, int port) {
-        try {
-            // Start the client and wait for the connection to be established.
-            channel = bootstrap.connect(new InetSocketAddress(host, port)).sync().channel();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if(!isConnected()) {
+            try {
+                // Start the client and wait for the connection to be established.
+                channel = bootstrap.connect(new InetSocketAddress(host, port)).sync().channel();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
