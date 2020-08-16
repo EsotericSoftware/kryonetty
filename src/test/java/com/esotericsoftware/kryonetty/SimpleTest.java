@@ -37,7 +37,7 @@ public class SimpleTest extends AbstractBenchmark {
                 .inputSize(4096)
                 .outputSize(4096)
                 .maxOutputSize(-1)
-                .register(TestRequest.class);
+                .register(200, TestRequest.class);
 
         server = new ThreadedServer(kryoNetty);
         server.eventHandler().register(new NetworkListener() {
