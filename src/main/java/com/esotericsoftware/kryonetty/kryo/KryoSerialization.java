@@ -1,7 +1,6 @@
 package com.esotericsoftware.kryonetty.kryo;
 
 import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.SerializerFactory;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.serializers.JavaSerializer;
@@ -22,6 +21,13 @@ public class KryoSerialization {
     private final Pool<Input> inputPool;
     private final Pool<Output> outputPool;
 
+    /*
+    Class ID's:
+     -1 & -2 are reserved by Kryo
+    0 - 8 are reserved for primitives
+    10 - 100 are reserved by java objects
+    100- ??? are for userspace
+     */
     public KryoSerialization(KryoNetty kryoNetty) {
         kryoPool = new Pool<Kryo>(true, true) {
             @Override
@@ -90,9 +96,46 @@ public class KryoSerialization {
                 kryo.register(Arrays.asList().getClass());
                 kryo.register(PriorityQueue.class);
                 kryo.register(BitSet.class);
+                kryo.register(HashMap.class, 10);
+                kryo.register(ArrayList.class, 11);
+                kryo.register(HashSet.class, 12);
+                kryo.register(byte[].class, 13);
+                kryo.register(char[].class, 14);
+                kryo.register(short[].class, 15);
+                kryo.register(int[].class, 16);
+                kryo.register(long[].class, 17);
+                kryo.register(float[].class, 18);
+                kryo.register(double[].class, 19);
+                kryo.register(boolean[].class, 20);
+                kryo.register(String[].class, 21);
+                kryo.register(Object[].class, 22);
+                kryo.register(BigInteger.class, 23);
+                kryo.register(BigDecimal.class, 24);
+                kryo.register(Class.class, 25);
+                kryo.register(Date.class, 26);
+                kryo.register(StringBuffer.class, 27);
+                kryo.register(StringBuilder.class, 28);
+                kryo.register(Collections.EMPTY_LIST.getClass(), 29);
+                kryo.register(Collections.EMPTY_MAP.getClass(), 30);
+                kryo.register(Collections.EMPTY_SET.getClass(), 31);
+                kryo.register(Collections.singleton(null).getClass(), 32);
+                kryo.register(Collections.singletonList(null).getClass(), 33);
+                kryo.register(Collections.singletonMap(null, null).getClass(), 34);
+                kryo.register(TreeSet.class, 35);
+                kryo.register(Collection.class, 36);
+                kryo.register(TreeMap.class, 37);
+                kryo.register(Map.class, 38);
+                kryo.register(TimeZone.class, 39);
+                kryo.register(Calendar.class, 40);
+                kryo.register(Locale.class, 41);
+                kryo.register(Charset.class, 42);
+                kryo.register(URL.class, 43);
+                kryo.register(Arrays.asList().getClass(), 44);
+                kryo.register(PriorityQueue.class, 45);
+                kryo.register(BitSet.class, 46);
 
                 if (!kryoNetty.getClassesToRegister().isEmpty())
-                    kryoNetty.getClassesToRegister().forEach(kryo::register);
+                    kryoNetty.getClassesToRegister().forEach((key, value) -> kryo.register(value, (key + 100)));
 
                 return kryo;
             }

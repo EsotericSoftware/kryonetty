@@ -2,6 +2,7 @@ package com.esotericsoftware.kryonetty.kryo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class KryoNetty {
 
@@ -9,7 +10,7 @@ public class KryoNetty {
     boolean useExecution;
     int executionThreadSize;
 
-    ArrayList<Class<?>> classesToRegister;
+    HashMap<Integer, Class<?>> classesToRegister;
     int inputBufferSize;
     int outputBufferSize;
     int maxOutputBufferSize;
@@ -19,8 +20,7 @@ public class KryoNetty {
         this.useExecution = false;
         this.executionThreadSize = 0;
 
-
-        this.classesToRegister = new ArrayList<>();
+        this.classesToRegister = new HashMap<>();
         this.inputBufferSize = -1;
         this.outputBufferSize = -1;
         this.maxOutputBufferSize = -1;
@@ -42,14 +42,19 @@ public class KryoNetty {
         return this;
     }
 
+    public KryoNetty register(int index, Class<?> clazz) {
+        this.classesToRegister.put(index, clazz);
+        return this;
+    }
+
     public KryoNetty register(Class<?> clazz) {
-        this.classesToRegister.add(clazz);
+        this.classesToRegister.put(this.classesToRegister.size() + 1, clazz);
         return this;
     }
 
     public KryoNetty register(Class<?>... clazzez) {
         if(clazzez.length != 0)
-            this.classesToRegister.addAll(Arrays.asList(clazzez));
+            Arrays.stream(clazzez).forEach(clazz -> this.classesToRegister.put(this.classesToRegister.size() + 1, clazz));
         return this;
     }
 
@@ -80,7 +85,7 @@ public class KryoNetty {
         return executionThreadSize;
     }
 
-    protected ArrayList<Class<?>> getClassesToRegister() {
+    protected HashMap<Integer, Class<?>> getClassesToRegister() {
         return classesToRegister;
     }
 
