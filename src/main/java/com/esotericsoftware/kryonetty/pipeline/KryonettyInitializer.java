@@ -4,7 +4,6 @@ import com.esotericsoftware.kryonetty.kryo.Endpoint;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.flow.FlowControlHandler;
 import io.netty.handler.flush.FlushConsolidationHandler;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -18,27 +17,38 @@ public class KryonettyInitializer extends ChannelInitializer<SocketChannel> {
 
     public KryonettyInitializer(Endpoint endpoint) {
         this.endpoint = endpoint;
-        this.executorGroup = new DefaultEventExecutorGroup(endpoint.kryoNetty().getExecutionThreadSize());
+        if (endpoint.kryoNetty().getExecutionThreadSize() > 0)
+            this.executorGroup = new DefaultEventExecutorGroup(endpoint.kryoNetty().getExecutionThreadSize());
+        else
+            this.executorGroup = null;
     }
 
     @Override
     public void initChannel(SocketChannel ch) {
         ChannelPipeline pipeline = ch.pipeline();
 
-        if(endpoint.kryoNetty().isUseLogging()) {
+        if (endpoint.kryoNetty().isUseLogging()) {
             pipeline.addLast("logging-handler", new LoggingHandler(LogLevel.INFO));
         }
 
-        // kryo codecs
-        pipeline.addLast("flow-control", new FlowControlHandler());
+        // let handler handle flush-consolidation
         pipeline.addLast("flush-handler", new FlushConsolidationHandler());
-        pipeline.addLast("decoder", new KryonettyDecoder(endpoint));
-        pipeline.addLast("encoder", new KryonettyEncoder(endpoint));
 
-        if(endpoint.kryoNetty().isUseExecution()) {
+        if (endpoint.kryoNetty().isUseExecution()) {
+
+            // kryo codecs
+            pipeline.addLast(executorGroup, "decoder", new KryonettyDecoder(endpoint));
+            pipeline.addLast(executorGroup, "encoder", new KryonettyEncoder(endpoint));
+
             // and then async-executed business logic.
             pipeline.addLast(executorGroup, new KryonettyHandler(endpoint));
+
         } else {
+
+            // kryo codecs
+            pipeline.addLast("decoder", new KryonettyDecoder(endpoint));
+            pipeline.addLast("encoder", new KryonettyEncoder(endpoint));
+
             // and then business logic.
             pipeline.addLast(new KryonettyHandler(endpoint));
         }

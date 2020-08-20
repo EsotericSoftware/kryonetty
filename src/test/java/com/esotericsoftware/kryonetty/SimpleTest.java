@@ -32,8 +32,6 @@ public class SimpleTest extends AbstractBenchmark {
     public static void setupClass() {
 
         KryoNetty kryoNetty = new KryoNetty()
-                .useExecution()
-                .threadSize(16)
                 .inputSize(4096)
                 .outputSize(4096)
                 .maxOutputSize(-1)
@@ -52,10 +50,10 @@ public class SimpleTest extends AbstractBenchmark {
             @NetworkHandler
             public void onReceive(ReceiveEvent event) {
                 Object object = event.getObject();
+                testRequestReceived = true;
                 ChannelHandlerContext ctx = event.getCtx();
-                System.out.println("Server: Received: " + object + " from " + ctx.channel().remoteAddress());
+                //System.out.println("Server: Received: " + object + " from " + ctx.channel().remoteAddress());
                 if (object instanceof TestRequest) {
-                    testRequestReceived = true;
                     TestRequest request = (TestRequest) object;
                     server.send(ctx, request, false);
                 }
@@ -87,7 +85,7 @@ public class SimpleTest extends AbstractBenchmark {
             public void onReceive(ReceiveEvent event) {
                 Object object = event.getObject();
                 ChannelHandlerContext ctx = event.getCtx();
-                System.out.println("Client: Received: " + object + " from " + ctx.channel().remoteAddress());
+                //System.out.println("Client: Received: " + object + " from " + ctx.channel().remoteAddress());
                 if (object instanceof TestRequest) {
                     TestRequest request = (TestRequest) object;
                     assertEquals(request.someText, TEST_REQUEST.someText);
@@ -120,6 +118,7 @@ public class SimpleTest extends AbstractBenchmark {
         System.out.println("== Test String Behaviour == ");
         client.send("i like the way you do it right thurrrr");
         Thread.sleep(500);
+        System.out.println("== Finished Test String Behaviour == ");
     }
 
     @Test
@@ -128,16 +127,63 @@ public class SimpleTest extends AbstractBenchmark {
         client.send(TEST_REQUEST);
         Thread.sleep(500);
         assertTrue(testRequestReceived);
+        System.out.println("== Finished Test Request Class Behaviour == ");
     }
 
     @Test
-    public void testMap() throws Exception {
-        System.out.println("== Test Map Behaviour == ");
+    public void testMapFifty() throws Exception {
+        System.out.println("== Test Map (50) Behaviour == ");
         HashMap<String, TestRequest> hashMap = new HashMap<>();
         IntStream.range(0, 50).forEach(i -> hashMap.put("id#" + i, TEST_REQUEST));
         client.send(hashMap);
         Thread.sleep(500);
         assertTrue(testRequestReceived);
+        System.out.println("== Finished Test Map (50) Behaviour == ");
+    }
+
+
+    @Test
+    public void testMapHundred() throws Exception {
+        System.out.println("== Test Map (100) Behaviour == ");
+        HashMap<String, TestRequest> hashMap = new HashMap<>();
+        IntStream.range(0, 100).forEach(i -> hashMap.put("id#" + i, TEST_REQUEST));
+        client.send(hashMap);
+        Thread.sleep(500);
+        assertTrue(testRequestReceived);
+        System.out.println("== Finished Test Map (100) Behaviour == ");
+    }
+
+    @Test
+    public void testMapFiveHundred() throws Exception {
+        System.out.println("== Test Map (500) Behaviour == ");
+        HashMap<String, TestRequest> hashMap = new HashMap<>();
+        IntStream.range(0, 500).forEach(i -> hashMap.put("id#" + i, TEST_REQUEST));
+        client.send(hashMap);
+        Thread.sleep(500);
+        assertTrue(testRequestReceived);
+        System.out.println("== Finished Test Map (500) Behaviour == ");
+    }
+
+    @Test
+    public void testMapThousand() throws Exception {
+        System.out.println("== Test Map (1000) Behaviour == ");
+        HashMap<String, TestRequest> hashMap = new HashMap<>();
+        IntStream.range(0, 1000).forEach(i -> hashMap.put("id#" + i, TEST_REQUEST));
+        client.send(hashMap);
+        Thread.sleep(500);
+        assertTrue(testRequestReceived);
+        System.out.println("== Finished Test Map (1000) Behaviour == ");
+    }
+
+    @Test
+    public void testMapFiveThousand() throws Exception {
+        System.out.println("== Test Map (5000) Behaviour == ");
+        HashMap<String, TestRequest> hashMap = new HashMap<>();
+        IntStream.range(0, 5000).forEach(i -> hashMap.put("id#" + i, TEST_REQUEST));
+        client.send(hashMap);
+        Thread.sleep(500);
+        assertTrue(testRequestReceived);
+        System.out.println("== Finished Test Map (5000) Behaviour == ");
     }
 
     @Test
@@ -148,5 +194,6 @@ public class SimpleTest extends AbstractBenchmark {
         client.send("i like the way you do it right thurrrr Second");
         Thread.sleep(500);
         assertTrue(testRequestReceived);
+        System.out.println("== Finished Test Reconnect Behaviour == ");
     }
 }

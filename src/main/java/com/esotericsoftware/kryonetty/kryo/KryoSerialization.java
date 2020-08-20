@@ -1,6 +1,7 @@
 package com.esotericsoftware.kryonetty.kryo;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.SerializerFactory;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.serializers.JavaSerializer;
@@ -30,6 +31,27 @@ public class KryoSerialization {
                 kryo.setRegistrationRequired(true);
                 kryo.setReferences(true);
                 kryo.addDefaultSerializer(Throwable.class, new JavaSerializer());
+
+                SerializerFactory.CompatibleFieldSerializerFactory factory = new SerializerFactory.CompatibleFieldSerializerFactory();
+
+                // FieldSerializerConfig
+                factory.getConfig().setFieldsCanBeNull(true);
+                factory.getConfig().setFieldsAsAccessible(true);
+                factory.getConfig().setIgnoreSyntheticFields(false);
+                factory.getConfig().setFixedFieldTypes(false);
+                factory.getConfig().setCopyTransient(true);
+                factory.getConfig().setSerializeTransient(false);
+                factory.getConfig().setVariableLengthEncoding(true);
+                factory.getConfig().setExtendedFieldNames(true);
+
+                // CompatibleFieldSerializerConfig
+                factory.getConfig().setReadUnknownFieldData(false);
+                factory.getConfig().setChunkedEncoding(false);
+
+                // Adding Factory as Serializer
+                kryo.setDefaultSerializer(factory);
+
+
 
                 kryo.register(HashMap.class);
                 kryo.register(ArrayList.class);
