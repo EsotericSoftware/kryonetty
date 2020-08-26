@@ -23,8 +23,8 @@ import java.net.InetSocketAddress;
  */
 public class Client extends Endpoint {
 
-    private final Bootstrap bootstrap;
     private final EventLoopGroup group;
+    private Bootstrap bootstrap;
     private Channel channel;
 
     public Client(KryoNetty kryoNetty) {
@@ -39,21 +39,28 @@ public class Client extends Endpoint {
         this.group = isEpoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
 
         // Create Bootstrap
-        this.bootstrap = new Bootstrap()
-                .group(group)
-                .channel(isEpoll ? EpollSocketChannel.class : NioSocketChannel.class)
+        this.bootstrap = prepareBoostrap(this.group);
+    }
+
+    private Bootstrap prepareBoostrap(EventLoopGroup eventLoopGroup) {
+        // Create Bootstrap
+        int bufferSize = 256 * 1024;
+
+        Bootstrap bootstrap = new Bootstrap()
+                .group(eventLoopGroup)
+                .channel(Epoll.isAvailable() ? EpollSocketChannel.class : NioSocketChannel.class)
                 .handler(new KryonettyInitializer(this))
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
         // Check for extra epoll-options
-        if(isEpoll) {
+        if(Epoll.isAvailable()) {
             bootstrap
-                    .option(EpollChannelOption.EPOLL_MODE, EpollMode.EDGE_TRIGGERED)
+                    .option(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED)
                     .option(EpollChannelOption.TCP_FASTOPEN_CONNECT, true);
         }
+        return bootstrap;
     }
-
 
     /**
      * Return if the client is connected or not
@@ -98,6 +105,7 @@ public class Client extends Endpoint {
             channel = null;
         }
         if(!isConnected()) {
+            this.bootstrap = prepareBoostrap(this.group);
             connect(host, port);
         }
     }

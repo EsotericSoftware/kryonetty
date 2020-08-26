@@ -1,11 +1,14 @@
 package com.esotericsoftware.kryonetty.kryo;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.SerializerFactory;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.serializers.JavaSerializer;
 import com.esotericsoftware.kryo.util.Pool;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
@@ -38,12 +41,13 @@ public class KryoSerialization {
                 kryo.setReferences(true);
                 kryo.addDefaultSerializer(Throwable.class, new JavaSerializer());
 
+
                 SerializerFactory.CompatibleFieldSerializerFactory factory = new SerializerFactory.CompatibleFieldSerializerFactory();
 
                 // FieldSerializerConfig
                 factory.getConfig().setFieldsCanBeNull(true);
                 factory.getConfig().setFieldsAsAccessible(true);
-                factory.getConfig().setIgnoreSyntheticFields(false);
+                factory.getConfig().setIgnoreSyntheticFields(true);
                 factory.getConfig().setFixedFieldTypes(false);
                 factory.getConfig().setCopyTransient(true);
                 factory.getConfig().setSerializeTransient(false);
@@ -52,50 +56,11 @@ public class KryoSerialization {
 
                 // CompatibleFieldSerializerConfig
                 factory.getConfig().setReadUnknownFieldData(false);
-                factory.getConfig().setChunkedEncoding(false);
+                factory.getConfig().setChunkedEncoding(true);
 
                 // Adding Factory as Serializer
                 kryo.setDefaultSerializer(factory);
 
-
-
-                kryo.register(HashMap.class);
-                kryo.register(ArrayList.class);
-                kryo.register(HashSet.class);
-                kryo.register(byte[].class);
-                kryo.register(char[].class);
-                kryo.register(short[].class);
-                kryo.register(int[].class);
-                kryo.register(long[].class);
-                kryo.register(float[].class);
-                kryo.register(double[].class);
-                kryo.register(boolean[].class);
-                kryo.register(String[].class);
-                kryo.register(Object[].class);
-                kryo.register(BigInteger.class);
-                kryo.register(BigDecimal.class);
-                kryo.register(Class.class);
-                kryo.register(Date.class);
-                kryo.register(StringBuffer.class);
-                kryo.register(StringBuilder.class);
-                kryo.register(Collections.EMPTY_LIST.getClass());
-                kryo.register(Collections.EMPTY_MAP.getClass());
-                kryo.register(Collections.EMPTY_SET.getClass());
-                kryo.register(Collections.singleton(null).getClass());
-                kryo.register(Collections.singletonList(null).getClass());
-                kryo.register(Collections.singletonMap(null, null).getClass());
-                kryo.register(TreeSet.class);
-                kryo.register(Collection.class);
-                kryo.register(TreeMap.class);
-                kryo.register(Map.class);
-                kryo.register(TimeZone.class);
-                kryo.register(Calendar.class);
-                kryo.register(Locale.class);
-                kryo.register(Charset.class);
-                kryo.register(URL.class);
-                kryo.register(Arrays.asList().getClass());
-                kryo.register(PriorityQueue.class);
-                kryo.register(BitSet.class);
                 kryo.register(HashMap.class, 10);
                 kryo.register(ArrayList.class, 11);
                 kryo.register(HashSet.class, 12);
@@ -178,5 +143,30 @@ public class KryoSerialization {
 
     public void freeOutput(Output output) {
         outputPool.free(output);
+    }
+
+    public <T> byte[] encodeToBytes(T object) {
+        Kryo kryo = getKryo();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        Output output = getOutput();
+        output.setOutputStream(outputStream);
+        kryo.writeClassAndObject(output, object);
+        output.flush();
+        output.close();
+        freeKryo(kryo);
+        freeOutput(output);
+        return outputStream.toByteArray();
+    }
+
+    public <T> T decodeFromBytes(byte[] bytes) {
+        Kryo kryo = getKryo();
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+        Input input = getInput();
+        input.setInputStream(inputStream);
+        T object = (T) kryo.readClassAndObject(input);
+        input.close();
+        freeKryo(kryo);
+        freeInput(input);
+        return object;
     }
 }

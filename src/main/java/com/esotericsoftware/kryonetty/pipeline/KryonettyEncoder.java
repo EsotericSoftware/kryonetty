@@ -32,7 +32,7 @@ public class KryonettyEncoder extends MessageToByteEncoder {
 		endpoint.kryoSerialization().freeKryo(kryo);
 
 		byte[] outArray = outStream.toByteArray();
-		buffer.writeShort(outArray.length);
+		buffer.writeInt(outArray.length);
 		buffer.writeBytes(outArray);
 	}
 }

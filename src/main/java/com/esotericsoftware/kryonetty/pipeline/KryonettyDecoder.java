@@ -26,14 +26,14 @@ public class KryonettyDecoder extends ByteToMessageDecoder {
 
 		buffer.markReaderIndex();
 
-		int len = buffer.readUnsignedShort();
+		int contentLength = buffer.readInt();
 
-		if (buffer.readableBytes() < len) {
+		if (buffer.readableBytes() < contentLength) {
 			buffer.resetReaderIndex();
 			return;
 		}
 
-		byte[] buf = new byte[len];
+		byte[] buf = new byte[contentLength];
 		buffer.readBytes(buf);
 
 		Kryo kryo = endpoint.kryoSerialization().getKryo();

@@ -4,7 +4,6 @@ import com.esotericsoftware.kryonetty.kryo.Endpoint;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.flush.FlushConsolidationHandler;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
@@ -31,14 +30,11 @@ public class KryonettyInitializer extends ChannelInitializer<SocketChannel> {
             pipeline.addLast("logging-handler", new LoggingHandler(LogLevel.INFO));
         }
 
-        // let handler handle flush-consolidation
-        pipeline.addLast("flush-handler", new FlushConsolidationHandler());
-
         if (endpoint.kryoNetty().isUseExecution()) {
 
             // kryo codecs
-            pipeline.addLast(executorGroup, "decoder", new KryonettyDecoder(endpoint));
-            pipeline.addLast(executorGroup, "encoder", new KryonettyEncoder(endpoint));
+            pipeline.addLast("decoder", new KryonettyDecoder(endpoint));
+            pipeline.addLast("encoder", new KryonettyEncoder(endpoint));
 
             // and then async-executed business logic.
             pipeline.addLast(executorGroup, new KryonettyHandler(endpoint));

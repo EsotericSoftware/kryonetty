@@ -33,25 +33,27 @@ public class Server extends Endpoint {
         // inline epoll-variable
         boolean isEpoll = Epoll.isAvailable();
 
+        int cores = Runtime.getRuntime().availableProcessors();
+
         // Check for eventloop-groups
-        this.bossGroup = isEpoll ? new EpollEventLoopGroup(1) : new NioEventLoopGroup(1);
-        this.workerGroup = isEpoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
+        this.bossGroup = isEpoll ? new EpollEventLoopGroup(2 * cores) : new NioEventLoopGroup(2 * cores);
+        this.workerGroup = isEpoll ? new EpollEventLoopGroup(10 * cores) : new NioEventLoopGroup(10 * cores);
 
         // Create ServerBootstrap
         this.bootstrap = new ServerBootstrap()
                 .group(bossGroup, workerGroup)
                 .channel(isEpoll ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
                 .childHandler(new KryonettyInitializer(this))
-                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childOption(ChannelOption.IP_TOS, 24)
                 .childOption(ChannelOption.TCP_NODELAY, true)
+                .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .childOption(ChannelOption.SO_REUSEADDR, true);
 
         // Check for extra epoll-options
         if(isEpoll) {
             bootstrap
-                    .childOption(EpollChannelOption.EPOLL_MODE, EpollMode.EDGE_TRIGGERED)
+                    .childOption(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED)
                     .option(EpollChannelOption.TCP_FASTOPEN, 3)
                     .option(EpollChannelOption.SO_REUSEPORT, true);
         }
