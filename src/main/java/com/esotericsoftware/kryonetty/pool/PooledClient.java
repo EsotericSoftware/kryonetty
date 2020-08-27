@@ -1,32 +1,29 @@
 
-package com.esotericsoftware.kryonetty;
+package com.esotericsoftware.kryonetty.pool;
 
 import com.esotericsoftware.kryonetty.kryo.Endpoint;
 import com.esotericsoftware.kryonetty.kryo.KryoNetty;
 import com.esotericsoftware.kryonetty.pipeline.KryonettyInitializer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-import java.net.InetSocketAddress;
-
 /**
  * Provides a skeleton Endpoint implementation using Netty IO.
  *
  * @author Nathan Sweet
  */
-public class Client extends Endpoint {
+public class PooledClient extends Endpoint {
 
     private final EventLoopGroup group;
     private Bootstrap bootstrap;
-    private Channel channel;
+    private NettyPool nettyPool;
 
-    public Client(KryoNetty kryoNetty) {
+    public PooledClient(String host, int port, KryoNetty kryoNetty) {
         super(kryoNetty);
 
         // Note: We don't support KQueue. Boycott OSX and FreeBSD :P
@@ -39,12 +36,12 @@ public class Client extends Endpoint {
 
         // Create Bootstrap
         this.bootstrap = prepareBoostrap(this.group);
+
+        this.nettyPool = new NettyPool(host, port, bootstrap, 1);
     }
 
     private Bootstrap prepareBoostrap(EventLoopGroup eventLoopGroup) {
         // Create Bootstrap
-        int bufferSize = 256 * 1024;
-
         Bootstrap bootstrap = new Bootstrap()
                 .group(eventLoopGroup)
                 .channel(Epoll.isAvailable() ? EpollSocketChannel.class : NioSocketChannel.class)
@@ -53,19 +50,12 @@ public class Client extends Endpoint {
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
         // Check for extra epoll-options
-        if(Epoll.isAvailable()) {
+        if (Epoll.isAvailable()) {
             bootstrap
                     .option(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED)
                     .option(EpollChannelOption.TCP_FASTOPEN_CONNECT, true);
         }
         return bootstrap;
-    }
-
-    /**
-     * Return if the client is connected or not
-     */
-    public boolean isConnected() {
-        return this.channel != null && this.channel.isOpen() && this.channel.isActive();
     }
 
     /**
@@ -84,28 +74,7 @@ public class Client extends Endpoint {
      * @param sync
      */
     public void send(Object object, boolean sync) {
-        if(isConnected()) {
-            if (sync) {
-                try {
-                    channel.writeAndFlush(object).sync();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                channel.eventLoop().execute(() -> channel.writeAndFlush(object));
-            }
-        }
-    }
-
-    public void reconnect(String host, int port) {
-        if(channel != null) {
-            channel.close();
-            channel = null;
-        }
-        if(!isConnected()) {
-            this.bootstrap = prepareBoostrap(this.group);
-            connect(host, port);
-        }
+        nettyPool.send(object);
     }
 
     /**
@@ -114,24 +83,7 @@ public class Client extends Endpoint {
     public void close() {
         eventHandler().unregisterAll();
         group.shutdownGracefully();
-        if(channel != null) {
-            channel.close();
-            channel = null;
-        }
-    }
-
-    /**
-     * Connects the client to the given host and port
-     */
-    public void connect(String host, int port) {
-        if(!isConnected()) {
-            try {
-                // Start the client and wait for the connection to be established.
-                channel = bootstrap.connect(new InetSocketAddress(host, port)).sync().channel();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        nettyPool.destroy();
     }
 
     /**
