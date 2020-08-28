@@ -1,7 +1,7 @@
 package com.esotericsoftware.kryonetty.network.handler;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class NetworkEventManager {
 
@@ -21,10 +21,9 @@ public class NetworkEventManager {
     }
 
     public void callEvent(NetworkEvent networkEvent) {
-        this.eventList.forEach(networkListener ->
-                Arrays.stream(networkListener.getClass().getMethods())
-                        .filter(method -> method.isAnnotationPresent(NetworkHandler.class))
-                        .filter(method -> method.getAnnotation(NetworkHandler.class) != null).forEach(method -> {
+        for(NetworkListener networkListener : new ArrayList<>(this.eventList)) {
+            for(Method method : networkListener.getClass().getMethods()) {
+                if(method.isAnnotationPresent(NetworkHandler.class) && method.getAnnotation(NetworkHandler.class) != null) {
                     Class<?>[] methodParameter = method.getParameterTypes();
                     if(methodParameter.length == 1 && networkEvent.getClass().getSimpleName().equals(methodParameter[0].getSimpleName())) {
                         try {
@@ -34,6 +33,8 @@ public class NetworkEventManager {
                             e.printStackTrace();
                         }
                     }
-                }));
+                }
+            }
+        }
     }
 }

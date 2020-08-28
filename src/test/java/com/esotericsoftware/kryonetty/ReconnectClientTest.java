@@ -8,17 +8,16 @@ import com.esotericsoftware.kryonetty.network.DisconnectEvent;
 import com.esotericsoftware.kryonetty.network.ReceiveEvent;
 import com.esotericsoftware.kryonetty.network.handler.NetworkHandler;
 import com.esotericsoftware.kryonetty.network.handler.NetworkListener;
+import com.esotericsoftware.kryonetty.objects.EmptyRequest;
+import com.esotericsoftware.kryonetty.objects.TestRequest;
 import io.netty.channel.ChannelHandlerContext;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class NonPooledClientTest extends AbstractBenchmark {
-
-    public static final TestRequest TEST_REQUEST = new TestRequest("I'm not rich, but maybe with tests", 52411, true, Arrays.asList("Test1", "Test2", "Test3", "Test4", "Test5"));
+public class ReconnectClientTest extends AbstractBenchmark {
 
     public static Server server;
     public static Client client;
@@ -26,7 +25,7 @@ public class NonPooledClientTest extends AbstractBenchmark {
     public static AtomicInteger emptyCounter;
 
     @BeforeClass
-    public static void setupClass() {
+    public static void setupClass() throws Exception {
 
         KryoNetty kryoNetty = new KryoNetty()
                 .useExecution()
@@ -87,6 +86,7 @@ public class NonPooledClientTest extends AbstractBenchmark {
         client.connect("localhost", 54321);
 
         emptyCounter = new AtomicInteger();
+        Thread.sleep(1500L);
     }
 
     @AfterClass
@@ -96,20 +96,21 @@ public class NonPooledClientTest extends AbstractBenchmark {
     }
 
     @Test
-    public void testEmptyRequests1Sec() throws Exception {
-        System.out.println("== Test Empty Request/Sec Behaviour == ");
-        final long start = System.nanoTime();
-        int amount = 25_000;
-        for (int i = 0; i < amount; i++) {
-            client.send(new EmptyRequest());
-        }
-        while(emptyCounter.get() != amount) {
-
-        }
-        emptyCounter.set(0);
-        final long end = System.nanoTime();
-        System.out.println(amount / ((end - start) * (1 / 1000000000f)) + " packets/sec (" + amount + " packets took " + ((end - start) * (1 / 1000000000f)) + " seconds)");
-        System.out.println("== Finished Test Empty/Sec Behaviour == ");
+    public void testReconnect() throws Exception {
+        System.out.println("== Test Reconnect Behaviour == ");
+        System.out.println("Sending EmptyRequest > 1");
+        client.send(new EmptyRequest());
+        Thread.sleep(1000L);
+        System.out.println("Closing Channel > 2");
+        client.closeChannel();
+        Thread.sleep(1000L);
+        System.out.println("Connecting Channel > 3");
+        client.connect("localhost", 54321);
+        Thread.sleep(1000L);
+        System.out.println("Sending EmptyRequest > 4");
+        client.send(new EmptyRequest());
+        Thread.sleep(1000L);
+        System.out.println("== Finished Test Reconnect Behaviour == ");
     }
 
 }

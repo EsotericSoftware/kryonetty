@@ -7,6 +7,7 @@ import com.esotericsoftware.kryonetty.pipeline.KryonettyInitializer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.*;
@@ -39,12 +40,11 @@ public class Client extends Endpoint {
 
         // Create Bootstrap
         this.bootstrap = prepareBoostrap(this.group);
+
     }
 
     private Bootstrap prepareBoostrap(EventLoopGroup eventLoopGroup) {
         // Create Bootstrap
-        int bufferSize = 256 * 1024;
-
         Bootstrap bootstrap = new Bootstrap()
                 .group(eventLoopGroup)
                 .channel(Epoll.isAvailable() ? EpollSocketChannel.class : NioSocketChannel.class)
@@ -53,7 +53,7 @@ public class Client extends Endpoint {
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
         // Check for extra epoll-options
-        if(Epoll.isAvailable()) {
+        if (Epoll.isAvailable()) {
             bootstrap
                     .option(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED)
                     .option(EpollChannelOption.TCP_FASTOPEN_CONNECT, true);
@@ -84,7 +84,7 @@ public class Client extends Endpoint {
      * @param sync
      */
     public void send(Object object, boolean sync) {
-        if(isConnected()) {
+        if (isConnected()) {
             if (sync) {
                 try {
                     channel.writeAndFlush(object).sync();
@@ -98,13 +98,14 @@ public class Client extends Endpoint {
     }
 
     public void reconnect(String host, int port) {
-        if(channel != null) {
+        closeChannel();
+        connect(host, port);
+    }
+
+    public void closeChannel() {
+        if (isConnected()) {
             channel.close();
             channel = null;
-        }
-        if(!isConnected()) {
-            this.bootstrap = prepareBoostrap(this.group);
-            connect(host, port);
         }
     }
 
@@ -114,23 +115,26 @@ public class Client extends Endpoint {
     public void close() {
         eventHandler().unregisterAll();
         group.shutdownGracefully();
-        if(channel != null) {
-            channel.close();
-            channel = null;
-        }
+        closeChannel();
     }
 
     /**
      * Connects the client to the given host and port
      */
     public void connect(String host, int port) {
-        if(!isConnected()) {
-            try {
-                // Start the client and wait for the connection to be established.
-                channel = bootstrap.connect(new InetSocketAddress(host, port)).sync().channel();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        // Close the Channel if it's already connected
+        if (!isConnected()) {
+            closeChannel();
+        }
+        // Start the client and wait for the connection to be established.
+        try {
+            bootstrap.connect(new InetSocketAddress(host, port)).sync().addListener((ChannelFutureListener) future -> {
+                if (future.isSuccess())
+                    channel = future.channel();
+            });
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+
         }
     }
 

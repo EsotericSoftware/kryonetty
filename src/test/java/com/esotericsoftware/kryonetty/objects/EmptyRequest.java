@@ -1,4 +1,4 @@
-package com.esotericsoftware.kryonetty;
+package com.esotericsoftware.kryonetty.objects;
 
 public class EmptyRequest {
 

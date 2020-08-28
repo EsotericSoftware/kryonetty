@@ -8,6 +8,8 @@ import com.esotericsoftware.kryonetty.network.DisconnectEvent;
 import com.esotericsoftware.kryonetty.network.ReceiveEvent;
 import com.esotericsoftware.kryonetty.network.handler.NetworkHandler;
 import com.esotericsoftware.kryonetty.network.handler.NetworkListener;
+import com.esotericsoftware.kryonetty.objects.EmptyRequest;
+import com.esotericsoftware.kryonetty.objects.TestRequest;
 import com.esotericsoftware.kryonetty.pool.PooledClient;
 import io.netty.channel.ChannelHandlerContext;
 import org.junit.AfterClass;
@@ -18,7 +20,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class PooledClientTest extends AbstractBenchmark {
+public class ClientSpeedPooledTest extends AbstractBenchmark {
 
     public static final TestRequest TEST_REQUEST = new TestRequest("I'm not rich, but maybe with tests", 52411, true, Arrays.asList("Test1", "Test2", "Test3", "Test4", "Test5"));
 
@@ -102,68 +104,9 @@ public class PooledClientTest extends AbstractBenchmark {
     public static void afterClass() {
         client.close();
         server.close();
+        System.out.println("Average: " + averageEmpty.get() + " empty packets/sec");
+        System.out.println("Average: " + averageRequest.get() + " data packets/sec");
     }
-
-
-    /*
-    @Test
-    public void testString() throws Exception {
-        System.out.println("== Test String Behaviour == ");
-        client.send("i like the way you do it right thurrrr");
-        System.out.println("== Finished Test String Behaviour == ");
-        Thread.sleep(500);
-    }
-
-    @Test
-    public void testRequestClass() throws Exception {
-        System.out.println("== Test Request Class Behaviour == ");
-        client.send(TEST_REQUEST);
-        System.out.println("== Finished Test Request Class Behaviour == ");
-        Thread.sleep(500);
-    }
-
-    @Test
-    public void testMapTenThousand() throws Exception {
-        System.out.println("== Test Map (10_000) Behaviour == ");
-        HashMap<String, TestRequest> hashMap = new HashMap<>();
-        IntStream.range(0, 100_000).forEach(i -> hashMap.put("id#" + i, TEST_REQUEST));
-        client.send(hashMap);
-        System.out.println("== Finished Test Map (10_000) Behaviour == ");
-        Thread.sleep(500);
-    }
-
-    @Test
-    public void testMapAsBytes() throws Exception {
-        System.out.println("== Test Map Bytes Behaviour == ");
-        HashMap<String, TestRequest> hashMap = new HashMap<>();
-        IntStream.range(0, 100_000).forEach(i -> hashMap.put("id#" + i, TEST_REQUEST));
-        byte[] encoded = client.kryoSerialization().encodeToBytes(hashMap);
-        client.send(encoded);
-        System.out.println("== Finished Test Map Bytes Behaviour == ");
-        Thread.sleep(500);
-    }
-
-    @Test
-    public void testArrayAsBytes() throws Exception {
-        System.out.println("== Test ArrayList Bytes Behaviour == ");
-        ArrayList<TestRequest> hashMap = new ArrayList<>();
-        IntStream.range(0, 10_0000).forEach(i -> hashMap.add(
-                new TestRequest("tests" + new Random().nextLong(), new Random().nextLong(), true, Arrays.asList("Test1", "Test2", "Test3", "Test4", "Test5"))));
-        byte[] encoded = client.kryoSerialization().encodeToBytes(hashMap);
-        client.send(encoded);
-        System.out.println("== Finished Test ArrayList Bytes Behaviour == ");
-        Thread.sleep(500);
-    }
-
-    @Test
-    public void testEmptyRequests() throws Exception {
-        System.out.println("== Test Empty Request Behaviour == ");
-        final long start = System.currentTimeMillis();
-        IntStream.range(0, 100_000).forEach(i -> client.send(new EmptyRequest()));
-        System.out.println("1Mio took " + (System.currentTimeMillis() - start) + "ms");
-        System.out.println("== Finished Test Empty Request Behaviour == ");
-        Thread.sleep(500);
-    }*/
 
     @Test
     public void testEmptyRequests1Sec() throws Exception {
@@ -191,9 +134,4 @@ public class PooledClientTest extends AbstractBenchmark {
         System.out.println("== Finished Test Empty/Sec Behaviour == ");
     }
 
-    @AfterClass
-    public static void summary() {
-        System.out.println("Average: " + averageEmpty.get() + " empty packets/sec");
-        System.out.println("Average: " + averageRequest.get() + " data packets/sec");
-    }
 }
