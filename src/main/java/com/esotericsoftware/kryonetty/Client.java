@@ -92,7 +92,11 @@ public class Client extends Endpoint {
                     e.printStackTrace();
                 }
             } else {
-                channel.eventLoop().execute(() -> channel.writeAndFlush(object));
+                if(channel.eventLoop() == null || channel.eventLoop().inEventLoop()) {
+                    channel.writeAndFlush(object);
+                } else {
+                    channel.eventLoop().execute(() -> channel.writeAndFlush(object));
+                }
             }
         }
     }
@@ -102,10 +106,13 @@ public class Client extends Endpoint {
         connect(host, port);
     }
 
-    public void closeChannel() {
+    public void closeChannel(){
         if (isConnected()) {
-            channel.close();
-            channel = null;
+            try {
+                channel.close().sync();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -128,10 +135,7 @@ public class Client extends Endpoint {
         }
         // Start the client and wait for the connection to be established.
         try {
-            bootstrap.connect(new InetSocketAddress(host, port)).sync().addListener((ChannelFutureListener) future -> {
-                if (future.isSuccess())
-                    channel = future.channel();
-            });
+            this.channel = this.bootstrap.connect(new InetSocketAddress(host, port)).sync().channel();
         } catch (InterruptedException e) {
             e.printStackTrace();
 

@@ -33,9 +33,9 @@ public class ClientSpeedTest extends AbstractBenchmark {
 
         KryoNetty kryoNetty = new KryoNetty()
                 .useExecution()
-                .threadSize(128)
-                .inputSize(32_000)
-                .outputSize(32_000)
+                .threadSize(32)
+                .inputSize(1024)
+                .outputSize(1024)
                 .maxOutputSize(-1)
                 .register(200, TestRequest.class)
                 .register(201, EmptyRequest.class);

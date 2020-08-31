@@ -14,15 +14,15 @@ import io.netty.channel.ChannelHandlerContext;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
-import java.util.concurrent.atomic.AtomicInteger;
 
-public class ReconnectClientTest extends AbstractBenchmark {
+public class ReconnectClientTest {
 
     public static Server server;
     public static Client client;
 
-    public static AtomicInteger emptyCounter;
+    public static boolean received;
 
     @BeforeClass
     public static void setupClass() throws Exception {
@@ -30,8 +30,8 @@ public class ReconnectClientTest extends AbstractBenchmark {
         KryoNetty kryoNetty = new KryoNetty()
                 .useExecution()
                 .threadSize(128)
-                .inputSize(32_000)
-                .outputSize(32_000)
+                .inputSize(2048)
+                .outputSize(2048)
                 .maxOutputSize(-1)
                 .register(200, TestRequest.class)
                 .register(201, EmptyRequest.class);
@@ -48,7 +48,7 @@ public class ReconnectClientTest extends AbstractBenchmark {
             @NetworkHandler
             public void onReceive(ReceiveEvent event) {
                 if(event.getObject() instanceof EmptyRequest) {
-                    emptyCounter.getAndIncrement();
+                    received = true;
                 }
             }
 
@@ -85,7 +85,8 @@ public class ReconnectClientTest extends AbstractBenchmark {
         server.start(54321);
         client.connect("localhost", 54321);
 
-        emptyCounter = new AtomicInteger();
+        received = false;
+
         Thread.sleep(1500L);
     }
 
@@ -98,18 +99,14 @@ public class ReconnectClientTest extends AbstractBenchmark {
     @Test
     public void testReconnect() throws Exception {
         System.out.println("== Test Reconnect Behaviour == ");
-        System.out.println("Sending EmptyRequest > 1");
         client.send(new EmptyRequest());
-        Thread.sleep(1000L);
-        System.out.println("Closing Channel > 2");
         client.closeChannel();
-        Thread.sleep(1000L);
-        System.out.println("Connecting Channel > 3");
+        System.out.println("Wait for disconnect");
         client.connect("localhost", 54321);
-        Thread.sleep(1000L);
-        System.out.println("Sending EmptyRequest > 4");
+        System.out.println("Send Request");
         client.send(new EmptyRequest());
-        Thread.sleep(1000L);
+        Thread.sleep(500L);
+        assertTrue(received);
         System.out.println("== Finished Test Reconnect Behaviour == ");
     }
 
