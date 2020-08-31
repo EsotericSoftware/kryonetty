@@ -9,7 +9,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
 
 import java.io.ByteArrayOutputStream;
 
-public class KryonettyEncoder extends MessageToByteEncoder {
+public class KryonettyEncoder extends MessageToByteEncoder<Object> {
 
 	private final Endpoint endpoint;
 

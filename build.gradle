@@ -23,7 +23,11 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile group: 'com.carrotsearch', name: 'junit-benchmarks', version: '0.7.2'
 
-    compile group: 'io.netty', name: 'netty-all', version: '4.1.51.Final'
+    compile group: 'io.netty', name: 'netty-buffer', version: '4.1.51.Final'
+    compile group: 'io.netty', name: 'netty-transport', version: '4.1.51.Final'
+    compile group: 'io.netty', name: 'netty-transport-native-epoll', version: '4.1.51.Final'
+    compile group: 'io.netty', name: 'netty-handler', version: '4.1.51.Final'
+
     compile group: 'com.esotericsoftware', name: 'kryo', version: '5.0.0-RC9'
     compile group: 'org.objenesis', name: 'objenesis', version: '3.1'
 }
