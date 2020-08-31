@@ -10,6 +10,8 @@ KryoNetty is very similar to [KryoNet](https://github.com/EsotericSoftware/kryon
 - [Server](#how-to-start-the-server)
 - [Client](#how-to-connect-the-client)
 - [Events](#how-to-register-an-event)
+- [Download](#add-as-dependecy)
+- [Build](#build-from-source)
 - [KryoSerialization](#why-kryoserialization)
 
 
@@ -186,6 +188,40 @@ Here an example to process an object which is fired via a `ReceiveEvent`.
     }
 
 ```
+
+## Add as dependecy
+
+First of all add `jitpack.io` as repository. 
+
+```java
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
+```
+
+After that you can add it as dependency.
+```java
+    dependencies {
+        implementation 'com.github.EsotericSoftware:kryonetty:master-SNAPSHOT'
+    }
+```
+
+## Build from source
+
+If you want to build `kryonetty` from source, clone this repository and run `./gradlew buildKryoNetty`. The output-file will be in the directory: `/build/libs/kryonetty-{version}-all.jar`
+Gradle downloads the required dependencies and inserts all components into the output-file.
+If you are interested in the build task:
+
+```java
+task buildKryoNetty(type: Jar) {
+    baseName = project.name + '-all'
+    from {
+        configurations.compile.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+    with jar
+}
 
 ## Why KryoSerialization
 
