@@ -25,11 +25,11 @@ public class KryoSerialization {
     private final Pool<Output> outputPool;
 
     /*
-    * Class ID's reserved:
-    *  -1 & -2  -> Kryo
-    *   0 - 8   -> java-primitives
-    *  10 - 100 -> standard-java-objects
-    * 100++     -> user-space
+     * Class ID's reserved:
+     *  -1 & -2  -> Kryo
+     *   0 - 8   -> java-primitives
+     *  10 - 100 -> standard-java-objects
+     * 100++     -> user-space
      */
     public KryoSerialization(KryoNetty kryoNetty) {
 
@@ -137,52 +137,57 @@ public class KryoSerialization {
         };
     }
 
-    public Kryo getKryo() {
+    // Methods to get instances from poll
+    public Kryo obtainKryo() {
         return kryoPool.obtain();
     }
 
-    public void freeKryo(Kryo kryo) {
-        kryoPool.free(kryo);
-    }
-
-    public Input getInput() {
+    public Input obtainInput() {
         return inputPool.obtain();
     }
 
-    public void freeInput(Input input) {
-        inputPool.free(input);
-    }
-
-    public Output getOutput() {
+    public Output obtainOutput() {
         return outputPool.obtain();
     }
 
-    public void freeOutput(Output output) {
+    // Methods to free instances
+    public void free(Kryo kryo) {
+        kryoPool.free(kryo);
+    }
+
+    public void free(Input input) {
+        inputPool.free(input);
+    }
+
+    public void free(Output output) {
         outputPool.free(output);
     }
 
-    public <T> byte[] encodeToBytes(T object) {
-        Kryo kryo = getKryo();
+
+    // Serialize Objects to byte[]
+    public <T> byte[] encodeObject(T object) {
+        Kryo kryo = obtainKryo();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        Output output = getOutput();
+        Output output = obtainOutput();
         output.setOutputStream(outputStream);
         kryo.writeClassAndObject(output, object);
         output.flush();
         output.close();
-        freeKryo(kryo);
-        freeOutput(output);
+        free(kryo);
+        free(output);
         return outputStream.toByteArray();
     }
 
-    public <T> T decodeFromBytes(byte[] bytes) {
-        Kryo kryo = getKryo();
+    // Deserialize Objects from byte[]
+    public <T> T decodeObject(byte[] bytes) {
+        Kryo kryo = obtainKryo();
         ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
-        Input input = getInput();
+        Input input = obtainInput();
         input.setInputStream(inputStream);
         T object = (T) kryo.readClassAndObject(input);
         input.close();
-        freeKryo(kryo);
-        freeInput(input);
+        free(kryo);
+        free(input);
         return object;
     }
 }

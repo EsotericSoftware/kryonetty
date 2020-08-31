@@ -5,7 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 
 public class DisconnectEvent implements NetworkEvent {
 
-    ChannelHandlerContext ctx;
+    private final ChannelHandlerContext ctx;
 
     public DisconnectEvent(ChannelHandlerContext ctx) {
         this.ctx = ctx;

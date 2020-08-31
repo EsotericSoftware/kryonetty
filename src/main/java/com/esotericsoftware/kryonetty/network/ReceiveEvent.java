@@ -5,8 +5,8 @@ import io.netty.channel.ChannelHandlerContext;
 
 public class ReceiveEvent implements NetworkEvent {
 
-    ChannelHandlerContext ctx;
-    Object object;
+    private final ChannelHandlerContext ctx;
+    private final Object object;
 
     public ReceiveEvent(ChannelHandlerContext ctx, Object object) {
         this.ctx = ctx;

@@ -3,7 +3,7 @@ package com.esotericsoftware.kryonetty.kryo;
 
 import com.esotericsoftware.kryonetty.network.handler.NetworkEventManager;
 
-public abstract class Endpoint implements EndpointReceiver {
+public abstract class Endpoint implements EndpointInterface {
 
 	private final KryoNetty kryoNetty;
 	private final KryoSerialization kryoSerialization;
@@ -16,17 +16,17 @@ public abstract class Endpoint implements EndpointReceiver {
 	}
 
 	@Override
-	public KryoSerialization kryoSerialization() {
+	public KryoSerialization getKryoSerialization() {
 		return this.kryoSerialization;
 	}
 
 	@Override
-	public KryoNetty kryoNetty() {
+	public KryoNetty getKryoNetty() {
 		return this.kryoNetty;
 	}
 
 	@Override
-	public NetworkEventManager eventHandler() {
+	public NetworkEventManager getEventHandler() {
 		return this.networkEventManager;
 	}
 }

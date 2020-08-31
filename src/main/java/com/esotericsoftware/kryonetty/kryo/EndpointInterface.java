@@ -2,27 +2,27 @@ package com.esotericsoftware.kryonetty.kryo;
 
 import com.esotericsoftware.kryonetty.network.handler.NetworkEventManager;
 
-public interface EndpointReceiver {
+public interface EndpointInterface {
 
     /**
      * @return Returns the type // server or client
      */
-    Endpoint.Type type();
+    Endpoint.Type getType();
 
     /**
      * @return Returns the KryoNetty instance
      */
-    KryoNetty kryoNetty();
+    KryoNetty getKryoNetty();
 
     /**
      * @return Returns the KryoSerialization instance
      */
-    KryoSerialization kryoSerialization();
+    KryoSerialization getKryoSerialization();
 
     /**
      * @return Returns the NetworkEventManager instance
      */
-    NetworkEventManager eventHandler();
+    NetworkEventManager getEventHandler();
 
     enum Type { CLIENT, SERVER }
 }

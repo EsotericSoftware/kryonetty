@@ -7,40 +7,39 @@ import com.esotericsoftware.kryonetty.network.ReceiveEvent;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+public class KryoNettyHandler extends ChannelInboundHandlerAdapter {
 
-public class KryonettyHandler extends ChannelInboundHandlerAdapter {
+    private final Endpoint IEndpoint;
 
-    final Endpoint endpoint;
-    final ExecutorService executorService;
-
-    public KryonettyHandler(Endpoint endpoint) {
-        this.endpoint = endpoint;
-        this.executorService = Executors.newCachedThreadPool();
+    public KryoNettyHandler(Endpoint IEndpoint) {
+        this.IEndpoint = IEndpoint;
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        endpoint.eventHandler().callEvent(new ConnectEvent(ctx));
+        // Call ConnectEvent
+        IEndpoint.getEventHandler().callEvent(new ConnectEvent(ctx));
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-        endpoint.eventHandler().callEvent(new DisconnectEvent(ctx));
+        // Call DisconnectEvent
+        IEndpoint.getEventHandler().callEvent(new DisconnectEvent(ctx));
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         super.channelRead(ctx, msg);
-        endpoint.eventHandler().callEvent(new ReceiveEvent(ctx, msg));
+        // Call ReceiveEvent
+        IEndpoint.getEventHandler().callEvent(new ReceiveEvent(ctx, msg));
     }
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         super.channelReadComplete(ctx);
+        // Flush ChannelHandlerContext
         ctx.flush();
     }
 

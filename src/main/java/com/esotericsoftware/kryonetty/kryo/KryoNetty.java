@@ -17,7 +17,7 @@ public class KryoNetty {
     public KryoNetty() {
         this.useLogging = false;
         this.useExecution = false;
-        this.executionThreadSize = 0;
+        this.executionThreadSize = 1;
 
         this.classesToRegister = new HashMap<>();
         this.inputBufferSize = -1;
@@ -32,7 +32,6 @@ public class KryoNetty {
 
     public KryoNetty useExecution() {
         this.useExecution = true;
-        this.executionThreadSize = 8;
         return this;
     }
 

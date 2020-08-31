@@ -3,7 +3,7 @@ package com.esotericsoftware.kryonetty;
 
 import com.esotericsoftware.kryonetty.kryo.Endpoint;
 import com.esotericsoftware.kryonetty.kryo.KryoNetty;
-import com.esotericsoftware.kryonetty.pipeline.KryonettyInitializer;
+import com.esotericsoftware.kryonetty.pipeline.KryoNettyInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
@@ -13,26 +13,20 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.net.InetSocketAddress;
 
-/**
- * Skeleton Kryo server implementation using Netty.
- *
- * @author Nathan Sweet
- */
-public class Server extends Endpoint {
+public class ServerEndpoint extends Endpoint {
 
     private final ServerBootstrap bootstrap;
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
     private Channel channel;
 
-    public Server(KryoNetty kryoNetty) {
+    public ServerEndpoint(KryoNetty kryoNetty) {
         super(kryoNetty);
-
-        // Note: We don't support KQueue. Boycott OSX and FreeBSD :P
 
         // inline epoll-variable
         boolean isEpoll = Epoll.isAvailable();
 
+        // get runtime processors for thread-size
         int cores = Runtime.getRuntime().availableProcessors();
 
         // Check for eventloop-groups
@@ -43,7 +37,7 @@ public class Server extends Endpoint {
         this.bootstrap = new ServerBootstrap()
                 .group(bossGroup, workerGroup)
                 .channel(isEpoll ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
-                .childHandler(new KryonettyInitializer(this))
+                .childHandler(new KryoNettyInitializer(this))
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childOption(ChannelOption.IP_TOS, 24)
                 .childOption(ChannelOption.TCP_NODELAY, true)
@@ -76,7 +70,7 @@ public class Server extends Endpoint {
      */
     public void close() {
         // unregister network-events
-        eventHandler().unregisterAll();
+        getEventHandler().unregisterAll();
 
         // shutdown eventloop-groups
         bossGroup.shutdownGracefully();
@@ -119,7 +113,7 @@ public class Server extends Endpoint {
      * @return Gives the type server or client
      */
     @Override
-    public Type type() {
+    public Type getType() {
         return Type.SERVER;
     }
 

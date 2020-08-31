@@ -10,8 +10,6 @@ KryoNetty is very similar to [KryoNet](https://github.com/EsotericSoftware/kryon
 - [Server](#how-to-start-the-server)
 - [Client](#how-to-connect-the-client)
 - [Events](#how-to-register-an-event)
-- [Download](#add-as-dependecy)
-- [Build](#build-from-source)
 - [KryoSerialization](#why-kryoserialization)
 
 
@@ -45,6 +43,22 @@ Please note that Kryo gives every class an index-number. If you change the order
             SomeClass.class,
             Random.class
         )
+```
+
+Or with index-ids:
+
+```java
+    KryoNetty kryoNetty = new KryoNetty()
+        .useLogging()
+        .useExecution()
+        .threadSize(16)
+        .inputSize(4096)
+        .outputSize(4096)
+        .maxOutputSize(-1)
+        .register(100, TestRequest.class)
+        .register(101, TestResponse.class)
+        .register(102, SomeClass.class)
+        .register(103, Random.class);
 ```
 
 
@@ -173,42 +187,6 @@ Here an example to process an object which is fired via a `ReceiveEvent`.
 
 ```
 
-
-## Add as dependecy
-
-First of all add `jitpack.io` as repository. 
-
-```java
-    repositories {
-        maven { url 'https://jitpack.io' }
-    }
-```
-
-After that you can add it as dependency. Tag for example `0.6.3`
-```java
-    dependencies {
-        implementation 'com.github.Koboo:kryonetty:0.6.3'
-    }
-```
-
-## Build from source
-
-If you want to build `kryonetty` from source, clone this repository and run `./gradlew buildKryoNetty`. The output-file will be in the directory: `/build/libs/kryonetty-{version}-all.jar`
-Gradle downloads the required dependencies and inserts all components into the output-file.
-If you are interested in the build task:
-
-```java
-task buildKryoNetty(type: Jar) {
-    baseName = project.name + '-all'
-    from {
-        configurations.compile.collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    }
-    with jar
-}
-```
-
 ## Why KryoSerialization
 
 Why do we use Kryo and not for example the Netty ObjectEncoder? Quite simple. Kryo is noticeably faster and also easy to use. 
@@ -220,4 +198,3 @@ Since we work with a `Kryo`, `Input` & `Output` in a `Pool<?>` from `kryo-5.0.0`
 For more documentation see `KryoSerialization.class`
 
 Please use the [KryoNet discussion group](http://groups.google.com/group/kryonet-users) for [Kryo](https://github.com/EsotericSoftware/kryo)/[KryoNet](https://github.com/EsotericSoftware/kryonet)-specific support. <br>
-Use the [LevenProxy Discord Server](https://discord.levenproxy.eu/) for `KryoNetty-dev` support.

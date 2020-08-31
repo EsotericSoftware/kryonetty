@@ -5,7 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 
 public class ConnectEvent implements NetworkEvent {
 
-    ChannelHandlerContext ctx;
+    private final ChannelHandlerContext ctx;
 
     public ConnectEvent(ChannelHandlerContext ctx) {
         this.ctx = ctx;

@@ -1,7 +1,6 @@
 
 package com.esotericsoftware.kryonetty;
 
-import com.carrotsearch.junitbenchmarks.AbstractBenchmark;
 import com.esotericsoftware.kryonetty.kryo.KryoNetty;
 import com.esotericsoftware.kryonetty.network.ConnectEvent;
 import com.esotericsoftware.kryonetty.network.DisconnectEvent;
@@ -14,22 +13,18 @@ import io.netty.channel.ChannelHandlerContext;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
 
-public class ClientSpeedTest extends AbstractBenchmark {
+public class ReconnectClientEndpointTest {
 
-    public static final TestRequest TEST_REQUEST = new TestRequest("I'm not rich, but maybe with tests", 52411, true, Arrays.asList("Test1", "Test2", "Test3", "Test4", "Test5"));
+    public static ServerEndpoint serverEndpoint;
+    public static ClientEndpoint clientEndpoint;
 
-    public static Server server;
-    public static Client client;
-
-    public static AtomicInteger emptyCounter;
-    public static AtomicInteger averageEmpty;
+    public static boolean received;
 
     @BeforeClass
-    public static void setupClass() {
+    public static void setupClass() throws Exception {
 
         KryoNetty kryoNetty = new KryoNetty()
                 .useExecution()
@@ -40,8 +35,8 @@ public class ClientSpeedTest extends AbstractBenchmark {
                 .register(200, TestRequest.class)
                 .register(201, EmptyRequest.class);
 
-        server = new ThreadedServer(kryoNetty);
-        server.eventHandler().register(new NetworkListener() {
+        serverEndpoint = new ThreadedServerEndpoint(kryoNetty);
+        serverEndpoint.getEventHandler().register(new NetworkListener() {
 
             @NetworkHandler
             public void onConnect(ConnectEvent event) {
@@ -52,7 +47,7 @@ public class ClientSpeedTest extends AbstractBenchmark {
             @NetworkHandler
             public void onReceive(ReceiveEvent event) {
                 if(event.getObject() instanceof EmptyRequest) {
-                    emptyCounter.getAndIncrement();
+                    received = true;
                 }
             }
 
@@ -65,8 +60,8 @@ public class ClientSpeedTest extends AbstractBenchmark {
         });
 
 
-        client = new ThreadedClient(kryoNetty);
-        client.eventHandler().register(new NetworkListener() {
+        clientEndpoint = new ThreadedClientEndpoint(kryoNetty);
+        clientEndpoint.getEventHandler().register(new NetworkListener() {
 
             @NetworkHandler
             public void onConnect(ConnectEvent event) {
@@ -86,44 +81,32 @@ public class ClientSpeedTest extends AbstractBenchmark {
             }
         });
 
-        server.start(54321);
-        client.connect("localhost", 54321);
+        serverEndpoint.start(54321);
+        clientEndpoint.connect("localhost", 54321);
 
-        emptyCounter = new AtomicInteger();
-        averageEmpty = new AtomicInteger();
+        received = false;
+
+        Thread.sleep(1500L);
     }
 
     @AfterClass
     public static void afterClass() {
-        client.close();
-        server.close();
+        clientEndpoint.close();
+        serverEndpoint.close();
     }
 
     @Test
-    public void testEmptyRequests1Sec() throws Exception {
-        System.out.println("== Test Empty Request/Sec Behaviour == ");
-        final long start = System.nanoTime();
-        int amount = 50_000;
-        for (int i = 0; i < amount; i++) {
-            client.send(new EmptyRequest());
-        }
-        while(emptyCounter.get() != amount) {
-
-        }
-        emptyCounter.set(0);
-        final long end = System.nanoTime();
-        final long time = (end - start);
-        int packetsPerSec = Math.round(amount / (time * (1 / 1000000000f)));
-        if(averageEmpty.get() != 0) {
-            averageEmpty.set(Math.round(packetsPerSec + averageEmpty.get()) / 2);
-        } else {
-            averageEmpty.set(packetsPerSec);
-        }
-        System.out.println(amount + "/" + emptyCounter.get() + " successful in " + (time * (1 / 1000000000f)) + " seconds");
-        System.out.println(packetsPerSec+ " packets/sec");
-        System.out.println(averageEmpty.get() + " packets/sec in average");
-        emptyCounter.set(0);
-        System.out.println("== Finished Test Empty/Sec Behaviour == ");
+    public void testReconnect() throws Exception {
+        System.out.println("== Test Reconnect Behaviour == ");
+        clientEndpoint.send(new EmptyRequest());
+        clientEndpoint.closeChannel();
+        System.out.println("Wait for disconnect");
+        clientEndpoint.connect("localhost", 54321);
+        System.out.println("Send Request");
+        clientEndpoint.send(new EmptyRequest());
+        Thread.sleep(500L);
+        assertTrue(received);
+        System.out.println("== Finished Test Reconnect Behaviour == ");
     }
 
 }

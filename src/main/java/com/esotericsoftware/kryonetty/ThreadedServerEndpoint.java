@@ -6,19 +6,19 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ThreadedServer extends Server {
+public class ThreadedServerEndpoint extends ServerEndpoint {
 
-    private final ExecutorService executor;
+    private final ExecutorService executorService;
 
-    public ThreadedServer(KryoNetty kryoNetty) {
+    public ThreadedServerEndpoint(KryoNetty kryoNetty) {
         super(kryoNetty);
-        this.executor = Executors.newSingleThreadExecutor();
+        this.executorService = Executors.newSingleThreadExecutor();
     }
 
     @Override
     public void start(int port) {
         try {
-            this.executor.submit(() -> super.start(port)).get();
+            this.executorService.submit(() -> super.start(port)).get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
@@ -27,6 +27,6 @@ public class ThreadedServer extends Server {
     @Override
     public void close() {
         super.close();
-        this.executor.shutdown();
+        this.executorService.shutdown();
     }
 }

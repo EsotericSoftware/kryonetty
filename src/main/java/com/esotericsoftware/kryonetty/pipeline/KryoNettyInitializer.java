@@ -9,17 +9,17 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 
-public class KryonettyInitializer extends ChannelInitializer<SocketChannel> {
+public class KryoNettyInitializer extends ChannelInitializer<SocketChannel> {
 
-    private final Endpoint endpoint;
+    private final Endpoint IEndpoint;
     private final EventExecutorGroup executorGroup;
 
-    public KryonettyInitializer(Endpoint endpoint) {
-        this.endpoint = endpoint;
+    public KryoNettyInitializer(Endpoint IEndpoint) {
+        this.IEndpoint = IEndpoint;
 
         // Initialize if execution is enabled
-        if (endpoint.kryoNetty().getExecutionThreadSize() > 0)
-            this.executorGroup = new DefaultEventExecutorGroup(endpoint.kryoNetty().getExecutionThreadSize());
+        if (IEndpoint.getKryoNetty().getExecutionThreadSize() > 0)
+            this.executorGroup = new DefaultEventExecutorGroup(IEndpoint.getKryoNetty().getExecutionThreadSize());
         else
             this.executorGroup = null;
     }
@@ -30,23 +30,23 @@ public class KryonettyInitializer extends ChannelInitializer<SocketChannel> {
         ChannelPipeline pipeline = ch.pipeline();
 
         // Add logging-handler if enabled
-        if (endpoint.kryoNetty().isUseLogging()) {
+        if (IEndpoint.getKryoNetty().isUseLogging())
             pipeline.addLast("logging-handler", new LoggingHandler(LogLevel.INFO));
-        }
+
 
         // kryo codecs
-        pipeline.addLast("decoder", new KryonettyDecoder(endpoint));
-        pipeline.addLast("encoder", new KryonettyEncoder(endpoint));
+        pipeline.addLast("decoder", new KryoNettyDecoder(IEndpoint));
+        pipeline.addLast("encoder", new KryoNettyEncoder(IEndpoint));
 
-        if (endpoint.kryoNetty().isUseExecution()) {
+        if (IEndpoint.getKryoNetty().isUseExecution()) {
 
             // and then async-executed business logic.
-            pipeline.addLast(executorGroup, new KryonettyHandler(endpoint));
+            pipeline.addLast(executorGroup, new KryoNettyHandler(IEndpoint));
 
         } else {
 
             // and then async-executed business logic.
-            pipeline.addLast(new KryonettyHandler(endpoint));
+            pipeline.addLast(new KryoNettyHandler(IEndpoint));
         }
     }
 }

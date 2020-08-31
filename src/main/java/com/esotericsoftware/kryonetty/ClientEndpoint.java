@@ -3,11 +3,10 @@ package com.esotericsoftware.kryonetty;
 
 import com.esotericsoftware.kryonetty.kryo.Endpoint;
 import com.esotericsoftware.kryonetty.kryo.KryoNetty;
-import com.esotericsoftware.kryonetty.pipeline.KryonettyInitializer;
+import com.esotericsoftware.kryonetty.pipeline.KryoNettyInitializer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.*;
@@ -16,18 +15,13 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.net.InetSocketAddress;
 
-/**
- * Provides a skeleton Endpoint implementation using Netty IO.
- *
- * @author Nathan Sweet
- */
-public class Client extends Endpoint {
+public class ClientEndpoint extends Endpoint {
 
     private final EventLoopGroup group;
     private Bootstrap bootstrap;
     private Channel channel;
 
-    public Client(KryoNetty kryoNetty) {
+    public ClientEndpoint(KryoNetty kryoNetty) {
         super(kryoNetty);
 
         // Note: We don't support KQueue. Boycott OSX and FreeBSD :P
@@ -35,8 +29,11 @@ public class Client extends Endpoint {
         // inline epoll-variable
         boolean isEpoll = Epoll.isAvailable();
 
+        // get runtime processors for thread-size
+        int cores = Runtime.getRuntime().availableProcessors();
+
         // Check for eventloop-group
-        this.group = isEpoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
+        this.group = isEpoll ? new EpollEventLoopGroup(10 * cores) : new NioEventLoopGroup(10 * cores);
 
         // Create Bootstrap
         this.bootstrap = prepareBoostrap(this.group);
@@ -48,7 +45,7 @@ public class Client extends Endpoint {
         Bootstrap bootstrap = new Bootstrap()
                 .group(eventLoopGroup)
                 .channel(Epoll.isAvailable() ? EpollSocketChannel.class : NioSocketChannel.class)
-                .handler(new KryonettyInitializer(this))
+                .handler(new KryoNettyInitializer(this))
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
@@ -120,7 +117,7 @@ public class Client extends Endpoint {
      * Close the channel.
      */
     public void close() {
-        eventHandler().unregisterAll();
+        getEventHandler().unregisterAll();
         group.shutdownGracefully();
         closeChannel();
     }
@@ -146,7 +143,7 @@ public class Client extends Endpoint {
      * @return Gives the type server or client
      */
     @Override
-    public Type type() {
+    public Type getType() {
         return Type.CLIENT;
     }
 
