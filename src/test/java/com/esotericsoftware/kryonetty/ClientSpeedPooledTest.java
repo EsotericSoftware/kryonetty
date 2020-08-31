@@ -112,7 +112,7 @@ public class ClientSpeedPooledTest extends AbstractBenchmark {
     public void testEmptyRequests1Sec() throws Exception {
         System.out.println("== Test Empty Request/Sec Behaviour == ");
         final long start = System.nanoTime();
-        int amount = 50_000;
+        int amount = 100_000;
         for (int i = 0; i < amount; i++) {
             client.send(new EmptyRequest(), true);
         }

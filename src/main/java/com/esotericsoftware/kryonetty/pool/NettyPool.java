@@ -36,11 +36,7 @@ public class NettyPool {
         synchronized (activeChannelSet) {
             Channel channel = bootstrap.connect(new InetSocketAddress(this.host, this.port)).syncUninterruptibly().channel();
             activeChannelSet.add(channel);
-            channel.closeFuture().addListener((ChannelFutureListener) closeFuture -> {
-                synchronized (activeChannelSet) {
-                    activeChannelSet.remove(closeFuture.channel());
-                }
-            });
+            channel.closeFuture().addListener((ChannelFutureListener) closeFuture -> activeChannelSet.remove(closeFuture.channel()));
             return channel;
         }
     }
@@ -56,20 +52,16 @@ public class NettyPool {
     }
 
     public Channel borrow() {
-        synchronized (freeChannelDeque) {
-            while (!freeChannelDeque.isEmpty()) {
-                Channel channel = freeChannelDeque.pollFirst();
-                if (channel.isOpen())
-                    return channel;
-            }
+        while (!freeChannelDeque.isEmpty()) {
+            Channel channel = freeChannelDeque.pollFirst();
+            if (channel.isOpen())
+                return channel;
         }
-        return activeChannelSet.size() < poolSize ? newChannel() : waitForFree();
+        return activeChannelSet.size() < poolSize ? newChannel() : borrow();
     }
 
     public void release(Channel channel) {
-        synchronized (freeChannelDeque) {
-            freeChannelDeque.addLast(channel);
-        }
+        freeChannelDeque.addLast(channel);
     }
 
     public void send(Object object) {

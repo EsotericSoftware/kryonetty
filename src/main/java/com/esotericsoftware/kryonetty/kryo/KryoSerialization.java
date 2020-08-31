@@ -25,23 +25,31 @@ public class KryoSerialization {
     private final Pool<Output> outputPool;
 
     /*
-    Class ID's:
-     -1 & -2 are reserved by Kryo
-    0 - 8 are reserved for primitives
-    10 - 100 are reserved by java objects
-    100- ??? are for userspace
+    * Class ID's reserved:
+    *  -1 & -2  -> Kryo
+    *   0 - 8   -> java-primitives
+    *  10 - 100 -> standard-java-objects
+    * 100++     -> user-space
      */
     public KryoSerialization(KryoNetty kryoNetty) {
+
+        // Initialize Kryo-Pool
         kryoPool = new Pool<Kryo>(true, true) {
             @Override
             protected Kryo create() {
+                // Create new Kryo instance
                 Kryo kryo = new Kryo();
 
+                // Configure Kryo-instance
+
+                // Registration of classes are required to avoid wrong class-decoding
                 kryo.setRegistrationRequired(true);
+
+                // Refereneces are required for object-graph
                 kryo.setReferences(true);
                 kryo.addDefaultSerializer(Throwable.class, new JavaSerializer());
 
-
+                // Use CompatibleSerializer for back- and upward-compatibility
                 SerializerFactory.CompatibleFieldSerializerFactory factory = new SerializerFactory.CompatibleFieldSerializerFactory();
 
                 // FieldSerializerConfig
@@ -61,6 +69,7 @@ public class KryoSerialization {
                 // Adding Factory as Serializer
                 kryo.setDefaultSerializer(factory);
 
+                // Register standard-java-objects
                 kryo.register(HashMap.class, 10);
                 kryo.register(ArrayList.class, 11);
                 kryo.register(HashSet.class, 12);
@@ -99,21 +108,28 @@ public class KryoSerialization {
                 kryo.register(PriorityQueue.class, 45);
                 kryo.register(BitSet.class, 46);
 
+                // Register KryoNetty Classes
                 if (!kryoNetty.getClassesToRegister().isEmpty())
                     kryoNetty.getClassesToRegister().forEach((key, value) -> kryo.register(value, (key + 100)));
 
                 return kryo;
             }
         };
+
+        // Initialize Input-Pool
         inputPool = new Pool<Input>(true, true) {
             @Override
             protected Input create() {
+                // Create new Input instance
                 return new Input(kryoNetty.getInputBufferSize() == -1 ? DEFAULT_INPUT_BUFFER_SIZE : kryoNetty.getInputBufferSize());
             }
         };
+
+        // Initialize Output-Pool
         outputPool = new Pool<Output>(true, true) {
             @Override
             protected Output create() {
+                // Create new Output instance
                 return new Output(
                         kryoNetty.getOutputBufferSize() == -1 ? DEFAULT_OUTPUT_BUFFER_SIZE : kryoNetty.getOutputBufferSize(),
                         kryoNetty.getMaxOutputBufferSize());
