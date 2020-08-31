@@ -19,22 +19,22 @@ public class KryonettyDecoder extends ByteToMessageDecoder {
 	}
 
 	@Override
-	protected void decode (ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) {
+	protected void decode (ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
 
-		if (buffer.readableBytes() < 2)
+		if (in.readableBytes() < 2)
 			return;
 
-		buffer.markReaderIndex();
+		in.markReaderIndex();
 
-		int len = buffer.readUnsignedShort();
+		int contentLength = in.readInt();
 
-		if (buffer.readableBytes() < len) {
-			buffer.resetReaderIndex();
+		if (in.readableBytes() < contentLength) {
+			in.resetReaderIndex();
 			return;
 		}
 
-		byte[] buf = new byte[len];
-		buffer.readBytes(buf);
+		byte[] buf = new byte[contentLength];
+		in.readBytes(buf);
 
 		Kryo kryo = endpoint.kryoSerialization().getKryo();
 		Input input = endpoint.kryoSerialization().getInput();

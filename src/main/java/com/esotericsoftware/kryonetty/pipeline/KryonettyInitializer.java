@@ -4,8 +4,6 @@ import com.esotericsoftware.kryonetty.kryo.Endpoint;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.flow.FlowControlHandler;
-import io.netty.handler.flush.FlushConsolidationHandler;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
@@ -18,28 +16,36 @@ public class KryonettyInitializer extends ChannelInitializer<SocketChannel> {
 
     public KryonettyInitializer(Endpoint endpoint) {
         this.endpoint = endpoint;
-        this.executorGroup = new DefaultEventExecutorGroup(endpoint.kryoNetty().getExecutionThreadSize());
+
+        // Initialize if execution is enabled
+        if (endpoint.kryoNetty().getExecutionThreadSize() > 0)
+            this.executorGroup = new DefaultEventExecutorGroup(endpoint.kryoNetty().getExecutionThreadSize());
+        else
+            this.executorGroup = null;
     }
 
     @Override
     public void initChannel(SocketChannel ch) {
+        // Get pipeline-instance
         ChannelPipeline pipeline = ch.pipeline();
 
-        if(endpoint.kryoNetty().isUseLogging()) {
+        // Add logging-handler if enabled
+        if (endpoint.kryoNetty().isUseLogging()) {
             pipeline.addLast("logging-handler", new LoggingHandler(LogLevel.INFO));
         }
 
         // kryo codecs
-        pipeline.addLast("flow-control", new FlowControlHandler());
-        pipeline.addLast("flush-handler", new FlushConsolidationHandler());
         pipeline.addLast("decoder", new KryonettyDecoder(endpoint));
         pipeline.addLast("encoder", new KryonettyEncoder(endpoint));
 
-        if(endpoint.kryoNetty().isUseExecution()) {
+        if (endpoint.kryoNetty().isUseExecution()) {
+
             // and then async-executed business logic.
             pipeline.addLast(executorGroup, new KryonettyHandler(endpoint));
+
         } else {
-            // and then business logic.
+
+            // and then async-executed business logic.
             pipeline.addLast(new KryonettyHandler(endpoint));
         }
     }

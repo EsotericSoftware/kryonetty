@@ -17,7 +17,7 @@ public class KryonettyEncoder extends MessageToByteEncoder {
 		this.endpoint = endpoint;
 	}
 
-	protected void encode (ChannelHandlerContext ctx, Object object, ByteBuf buffer) {
+	protected void encode (ChannelHandlerContext ctx, Object object, ByteBuf out) {
 		Kryo kryo = endpoint.kryoSerialization().getKryo();
 		Output output = endpoint.kryoSerialization().getOutput();
 
@@ -28,10 +28,11 @@ public class KryonettyEncoder extends MessageToByteEncoder {
 		output.flush();
 		output.close();
 
-		byte[] outArray = outStream.toByteArray();
-		buffer.writeShort(outArray.length);
-		buffer.writeBytes(outArray);
 		endpoint.kryoSerialization().freeOutput(output);
 		endpoint.kryoSerialization().freeKryo(kryo);
+
+		byte[] outArray = outStream.toByteArray();
+		out.writeInt(outArray.length);
+		out.writeBytes(outArray);
 	}
 }

@@ -1,4 +1,4 @@
-package com.esotericsoftware.kryonetty;
+package com.esotericsoftware.kryonetty.objects;
 
 import java.util.List;
 

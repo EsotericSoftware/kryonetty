@@ -7,12 +7,17 @@ import com.esotericsoftware.kryonetty.network.ReceiveEvent;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class KryonettyHandler extends ChannelInboundHandlerAdapter {
 
     final Endpoint endpoint;
+    final ExecutorService executorService;
 
     public KryonettyHandler(Endpoint endpoint) {
         this.endpoint = endpoint;
+        this.executorService = Executors.newCachedThreadPool();
     }
 
     @Override
@@ -28,12 +33,14 @@ public class KryonettyHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        ctx.executor().execute(() -> endpoint.eventHandler().callEvent(new ReceiveEvent(ctx, msg)));
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        super.channelRead(ctx, msg);
+        endpoint.eventHandler().callEvent(new ReceiveEvent(ctx, msg));
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) {
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        super.channelReadComplete(ctx);
         ctx.flush();
     }
 

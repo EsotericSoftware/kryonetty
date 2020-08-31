@@ -1,6 +1,5 @@
 package com.esotericsoftware.kryonetty.kryo;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -89,11 +88,11 @@ public class KryoNetty {
         return classesToRegister;
     }
 
-    protected int getInputBufferSize() {
+    public int getInputBufferSize() {
         return inputBufferSize;
     }
 
-    protected int getOutputBufferSize() {
+    public int getOutputBufferSize() {
         return outputBufferSize;
     }
 
