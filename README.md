@@ -222,6 +222,7 @@ task buildKryoNetty(type: Jar) {
     }
     with jar
 }
+```
 
 ## Why KryoSerialization
 

@@ -35,7 +35,7 @@ public class ReconnectClientEndpointTest {
                 .register(200, TestRequest.class)
                 .register(201, EmptyRequest.class);
 
-        serverEndpoint = new ThreadedServerEndpoint(kryoNetty);
+        serverEndpoint = new ServerEndpoint(kryoNetty);
         serverEndpoint.getEventHandler().register(new NetworkListener() {
 
             @NetworkHandler
@@ -60,7 +60,7 @@ public class ReconnectClientEndpointTest {
         });
 
 
-        clientEndpoint = new ThreadedClientEndpoint(kryoNetty);
+        clientEndpoint = new ClientEndpoint(kryoNetty);
         clientEndpoint.getEventHandler().register(new NetworkListener() {
 
             @NetworkHandler
