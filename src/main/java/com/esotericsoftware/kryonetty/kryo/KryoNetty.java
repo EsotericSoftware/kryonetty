@@ -1,74 +1,84 @@
 package com.esotericsoftware.kryonetty.kryo;
 
+import com.esotericsoftware.kryo.Kryo;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 public class KryoNetty {
 
-    boolean useLogging;
-    boolean useExecution;
-    int executionThreadSize;
+    Consumer<Kryo> initializationConsumer;
 
-    HashMap<Integer, Class<?>> classesToRegister;
-    int inputBufferSize;
-    int outputBufferSize;
-    int maxOutputBufferSize;
+    boolean useLogging = false;
+    boolean useExecution = false;
+    int executionThreadSize = 1;
+
+    Map<Integer, Class<?>> classesToRegister = new ConcurrentHashMap<>();
+    int inputBufferSize = -1;
+    int outputBufferSize = -1;
+    int maxOutputBufferSize = -1;
 
     public KryoNetty() {
-        this.useLogging = false;
-        this.useExecution = false;
-        this.executionThreadSize = 1;
+    }
 
-        this.classesToRegister = new HashMap<>();
-        this.inputBufferSize = -1;
-        this.outputBufferSize = -1;
-        this.maxOutputBufferSize = -1;
+    public KryoNetty initialization(Consumer<Kryo> consumer) {
+        initializationConsumer = consumer;
+        return this;
     }
 
     public KryoNetty useLogging() {
-        this.useLogging = true;
+        useLogging = true;
         return this;
     }
 
     public KryoNetty useExecution() {
-        this.useExecution = true;
+        useExecution = true;
         return this;
     }
 
     public KryoNetty threadSize(int size) {
-        this.executionThreadSize = size;
+        executionThreadSize = size;
         return this;
     }
 
     public KryoNetty register(int index, Class<?> clazz) {
-        this.classesToRegister.put(index, clazz);
+        classesToRegister.put(index, clazz);
         return this;
     }
 
     public KryoNetty register(Class<?> clazz) {
-        this.classesToRegister.put(this.classesToRegister.size() + 1, clazz);
+        classesToRegister.put(this.classesToRegister.size() + 1, clazz);
         return this;
     }
 
     public KryoNetty register(Class<?>... clazzez) {
-        if(clazzez.length != 0)
-            Arrays.stream(clazzez).forEach(clazz -> this.classesToRegister.put(this.classesToRegister.size() + 1, clazz));
+        if(clazzez.length != 0) {
+            for(Class<?> clazz : clazzez) {
+                classesToRegister.put(classesToRegister.size() + 1, clazz);
+            }
+        }
         return this;
     }
 
-    public KryoNetty inputSize(int inputBufferSize) {
-        this.inputBufferSize = inputBufferSize;
+    public KryoNetty inputSize(int newInputSize) {
+        inputBufferSize = newInputSize;
         return this;
     }
 
-    public KryoNetty outputSize(int outputBufferSize) {
-        this.outputBufferSize = outputBufferSize;
+    public KryoNetty outputSize(int newOutputSize) {
+        outputBufferSize = newOutputSize;
         return this;
     }
 
-    public KryoNetty maxOutputSize(int maxOutputBufferSize) {
-        this.maxOutputBufferSize = maxOutputBufferSize;
+    public KryoNetty maxOutputSize(int newMaxOutputSize) {
+        maxOutputBufferSize = newMaxOutputSize;
         return this;
+    }
+
+    protected Consumer<Kryo> getInitializationConsumer() {
+        return initializationConsumer;
     }
 
     public boolean isUseLogging() {
@@ -83,7 +93,7 @@ public class KryoNetty {
         return executionThreadSize;
     }
 
-    protected HashMap<Integer, Class<?>> getClassesToRegister() {
+    protected Map<Integer, Class<?>> getClassesToRegister() {
         return classesToRegister;
     }
 
