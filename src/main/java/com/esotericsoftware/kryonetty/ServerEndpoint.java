@@ -15,9 +15,9 @@ import java.net.InetSocketAddress;
 
 public class ServerEndpoint extends Endpoint {
 
-    private final ServerBootstrap bootstrap;
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
+    private final ServerBootstrap bootstrap;
     private Channel channel;
 
     public ServerEndpoint(KryoNetty kryoNetty) {
