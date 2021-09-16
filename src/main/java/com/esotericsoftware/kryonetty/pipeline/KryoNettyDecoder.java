@@ -9,10 +9,10 @@ import java.util.List;
 
 public class KryoNettyDecoder extends ByteToMessageDecoder {
 
-	private final Endpoint IEndpoint;
+	private final Endpoint endpoint;
 
-	public KryoNettyDecoder(Endpoint IEndpoint) {
-		this.IEndpoint = IEndpoint;
+	public KryoNettyDecoder(Endpoint endpoint) {
+		this.endpoint = endpoint;
 	}
 
 	@Override
@@ -40,7 +40,7 @@ public class KryoNettyDecoder extends ByteToMessageDecoder {
 		in.readBytes(objectBytes);
 
 		// Get object-decoding methods from KryoSerialization
-		Object object = IEndpoint.getKryoSerialization().decodeObject(objectBytes);
+		Object object = endpoint.getKryoSerialization().decodeObject(objectBytes);
 
 		// add the object to the output-list
 		out.add(object);
