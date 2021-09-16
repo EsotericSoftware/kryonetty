@@ -97,13 +97,6 @@ To start the `Server`, the following call `start(int port)` is all you need. The
     server.start(56566);
 ```
 
-If you want to let the `Server` run in another thread, use the `ThreadedServer`. This starts the server in a `Executors.newSingleThreadExecutor()`. Just replace `Server` with `ThreadedServer`:
-
-```java
-    Server server = new ThreadedServer(kryoNetty);
-    server.start(56566);
-```
-
 
 
 
@@ -115,14 +108,6 @@ The `Client` configuration works quite similar to the `Server`. The only differe
     Client client = new Client(kryoNetty);
     client.connect("localhost", 56566);
 ```
-
-Same way with the `ThreadedClient`
-
-```java
-    Client client = new ThreadedClient(kryoNetty);
-    client.connect("localhost", 56566);
-```
-
 
 
 
