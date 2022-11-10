@@ -118,8 +118,8 @@ public class ClientEndpoint extends Endpoint {
      */
     public void close() {
         getEventHandler().unregisterAll();
-        group.shutdownGracefully();
         closeChannel();
+        group.shutdownGracefully();
     }
 
     /**

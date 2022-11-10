@@ -72,12 +72,12 @@ public class ServerEndpoint extends Endpoint {
         // unregister network-events
         getEventHandler().unregisterAll();
 
+        // close server-channel
+        channel.close();
+
         // shutdown eventloop-groups
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
-
-        // close server-channel
-        channel.close();
     }
 
     /**
