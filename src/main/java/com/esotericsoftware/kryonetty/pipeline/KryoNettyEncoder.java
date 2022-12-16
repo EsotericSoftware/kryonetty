@@ -7,15 +7,15 @@ import io.netty.handler.codec.MessageToByteEncoder;
 
 public class KryoNettyEncoder extends MessageToByteEncoder<Object> {
 
-	private final Endpoint IEndpoint;
+	private final Endpoint endpoint;
 
-	public KryoNettyEncoder(Endpoint IEndpoint) {
-		this.IEndpoint = IEndpoint;
+	public KryoNettyEncoder(Endpoint endpoint) {
+		this.endpoint = endpoint;
 	}
 
 	protected void encode (ChannelHandlerContext ctx, Object object, ByteBuf out) {
 		// Get object-encoding method from KryoSerialization
-		byte[] objectBytes = IEndpoint.getKryoSerialization().encodeObject(object);
+		byte[] objectBytes = endpoint.getKryoSerialization().encodeObject(object);
 
 		// Write the length to the output-buffer
 		out.writeInt(objectBytes.length);

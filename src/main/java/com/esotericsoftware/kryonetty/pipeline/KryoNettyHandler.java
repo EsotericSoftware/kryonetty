@@ -9,31 +9,31 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 
 public class KryoNettyHandler extends ChannelInboundHandlerAdapter {
 
-    private final Endpoint IEndpoint;
+    private final Endpoint endpoint;
 
-    public KryoNettyHandler(Endpoint IEndpoint) {
-        this.IEndpoint = IEndpoint;
+    public KryoNettyHandler(Endpoint endpoint) {
+        this.endpoint = endpoint;
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
         // Call ConnectEvent
-        IEndpoint.getEventHandler().callEvent(new ConnectEvent(ctx));
+        endpoint.getEventHandler().callEvent(new ConnectEvent(ctx));
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
         // Call DisconnectEvent
-        IEndpoint.getEventHandler().callEvent(new DisconnectEvent(ctx));
+        endpoint.getEventHandler().callEvent(new DisconnectEvent(ctx));
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         super.channelRead(ctx, msg);
         // Call ReceiveEvent
-        IEndpoint.getEventHandler().callEvent(new ReceiveEvent(ctx, msg));
+        endpoint.getEventHandler().callEvent(new ReceiveEvent(ctx, msg));
     }
 
     @Override

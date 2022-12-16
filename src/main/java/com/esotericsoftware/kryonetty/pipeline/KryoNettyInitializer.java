@@ -11,15 +11,15 @@ import io.netty.util.concurrent.EventExecutorGroup;
 
 public class KryoNettyInitializer extends ChannelInitializer<SocketChannel> {
 
-    private final Endpoint IEndpoint;
+    private final Endpoint endpoint;
     private final EventExecutorGroup executorGroup;
 
-    public KryoNettyInitializer(Endpoint IEndpoint) {
-        this.IEndpoint = IEndpoint;
+    public KryoNettyInitializer(Endpoint endpoint) {
+        this.endpoint = endpoint;
 
         // Initialize if execution is enabled
-        if (IEndpoint.getKryoNetty().getExecutionThreadSize() > 0)
-            this.executorGroup = new DefaultEventExecutorGroup(IEndpoint.getKryoNetty().getExecutionThreadSize());
+        if (endpoint.getKryoNetty().getExecutionThreadSize() > 0)
+            this.executorGroup = new DefaultEventExecutorGroup(endpoint.getKryoNetty().getExecutionThreadSize());
         else
             this.executorGroup = null;
     }
@@ -30,23 +30,23 @@ public class KryoNettyInitializer extends ChannelInitializer<SocketChannel> {
         ChannelPipeline pipeline = ch.pipeline();
 
         // Add logging-handler if enabled
-        if (IEndpoint.getKryoNetty().isUseLogging())
+        if (endpoint.getKryoNetty().isUseLogging())
             pipeline.addLast("logging-handler", new LoggingHandler(LogLevel.INFO));
 
 
         // kryo codecs
-        pipeline.addLast("decoder", new KryoNettyDecoder(IEndpoint));
-        pipeline.addLast("encoder", new KryoNettyEncoder(IEndpoint));
+        pipeline.addLast("decoder", new KryoNettyDecoder(endpoint));
+        pipeline.addLast("encoder", new KryoNettyEncoder(endpoint));
 
-        if (IEndpoint.getKryoNetty().isUseExecution()) {
+        if (endpoint.getKryoNetty().isUseExecution()) {
 
             // and then async-executed business logic.
-            pipeline.addLast(executorGroup, new KryoNettyHandler(IEndpoint));
+            pipeline.addLast(executorGroup, new KryoNettyHandler(endpoint));
 
         } else {
 
             // and then async-executed business logic.
-            pipeline.addLast(new KryoNettyHandler(IEndpoint));
+            pipeline.addLast(new KryoNettyHandler(endpoint));
         }
     }
 }

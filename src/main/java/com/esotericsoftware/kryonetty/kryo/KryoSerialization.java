@@ -108,6 +108,10 @@ public class KryoSerialization {
                 kryo.register(PriorityQueue.class, 45);
                 kryo.register(BitSet.class, 46);
 
+                if(kryoNetty.getInitializationConsumer() != null) {
+                    kryoNetty.getInitializationConsumer().accept(kryo);
+                }
+
                 // Register KryoNetty Classes
                 if (!kryoNetty.getClassesToRegister().isEmpty())
                     kryoNetty.getClassesToRegister().forEach((key, value) -> kryo.register(value, (key + 100)));

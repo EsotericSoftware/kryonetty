@@ -15,9 +15,9 @@ import java.net.InetSocketAddress;
 
 public class ServerEndpoint extends Endpoint {
 
-    private final ServerBootstrap bootstrap;
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
+    private final ServerBootstrap bootstrap;
     private Channel channel;
 
     public ServerEndpoint(KryoNetty kryoNetty) {
@@ -72,12 +72,12 @@ public class ServerEndpoint extends Endpoint {
         // unregister network-events
         getEventHandler().unregisterAll();
 
+        // close server-channel
+        channel.close();
+
         // shutdown eventloop-groups
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
-
-        // close server-channel
-        channel.close();
     }
 
     /**

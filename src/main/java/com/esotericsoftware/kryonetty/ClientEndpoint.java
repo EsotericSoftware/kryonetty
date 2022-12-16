@@ -18,7 +18,7 @@ import java.net.InetSocketAddress;
 public class ClientEndpoint extends Endpoint {
 
     private final EventLoopGroup group;
-    private Bootstrap bootstrap;
+    private final Bootstrap bootstrap;
     private Channel channel;
 
     public ClientEndpoint(KryoNetty kryoNetty) {
@@ -118,8 +118,8 @@ public class ClientEndpoint extends Endpoint {
      */
     public void close() {
         getEventHandler().unregisterAll();
-        group.shutdownGracefully();
         closeChannel();
+        group.shutdownGracefully();
     }
 
     /**
