@@ -14,7 +14,6 @@ KryoNetty is very similar to [KryoNet](https://github.com/EsotericSoftware/kryon
 - [Build](#build-from-source)
 - [KryoSerialization](#why-kryoserialization)
 
-
 ## How to KryoNetty works 
 `KryoNetty` passes the configuration of the different components to the classes & references behind it.
 
@@ -63,7 +62,6 @@ Or with index-ids:
         .register(103, Random.class);
 ```
 
-
 Every option returns the current instance of `KryoNetty`<br>
 Current Options:
 - `useLogging()` 
@@ -85,9 +83,6 @@ Current Options:
     - sets max-buffer-size of `Output.class` 
     - default: -1
 
-
-
-
 ## How to start the server
 
 To start the `Server`, the following call `start(int port)` is all you need. The `Server` need a configured `KryoNetty` instance as argument.
@@ -97,9 +92,6 @@ To start the `Server`, the following call `start(int port)` is all you need. The
     server.start(56566);
 ```
 
-
-
-
 ## How to connect the client
 
 The `Client` configuration works quite similar to the `Server`. The only difference are the `start(int port)` and `connect(String host, int port)` method-calls.
@@ -108,8 +100,6 @@ The `Client` configuration works quite similar to the `Server`. The only differe
     Client client = new Client(kryoNetty);
     client.connect("localhost", 56566);
 ```
-
-
 
 ## How to register an Event
 
@@ -174,7 +164,7 @@ Here an example to process an object which is fired via a `ReceiveEvent`.
 
 ```
 
-## Add as dependecy
+## Add as dependency
 
 First of all add `jitpack.io` as repository. 
 
@@ -193,30 +183,20 @@ After that you can add it as dependency.
 
 ## Build from source
 
-If you want to build `kryonetty` from source, clone this repository and run `./gradlew buildKryoNetty`. The output-file will be in the directory: `/build/libs/kryonetty-{version}-all.jar`
+If you want to build `kryonetty` from source, clone this repository and run `./gradlew shadowJar`. 
+The output-file will be in the directory: `/build/libs/kryonetty-{version}-all.jar`
 Gradle downloads the required dependencies and inserts all components into the output-file.
-If you are interested in the build task:
 
-```java
-task buildKryoNetty(type: Jar) {
-    baseName = project.name + '-all'
-    from {
-        configurations.compile.collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    }
-    with jar
-}
-```
+- [ShadowJar Plugin](https://imperceptiblethoughts.com/shadow)
 
 ## Why KryoSerialization
 
 Why do we use Kryo and not for example the Netty ObjectEncoder? Quite simple. Kryo is noticeably faster and also easy to use. 
 (Benchmark links:)
-- https://github.com/EsotericSoftware/kryo#benchmarks
-- https://github.com/eishay/jvm-serializers/wiki
+- [Kryo Benchmarks](https://github.com/EsotericSoftware/kryo#benchmarks)
+- [JVM Serializers](https://github.com/eishay/jvm-serializers/wiki)
 
-Since we work with a `Kryo`, `Input` & `Output` in a `Pool<?>` from `kryo-5.0.0`, classes are passed to the `KryoSerialization` constructor for registration & initialization.
+Since we work with a `Kryo`, `Input` & `Output` in a `Pool<?>` from `kryo-5.3.0`, classes are passed to the `KryoSerialization` constructor for registration & initialization.
 For more documentation see `KryoSerialization.class`
 
 Please use the [KryoNet discussion group](http://groups.google.com/group/kryonet-users) for [Kryo](https://github.com/EsotericSoftware/kryo)/[KryoNet](https://github.com/EsotericSoftware/kryonet)-specific support. <br>
