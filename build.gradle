@@ -1,11 +1,13 @@
 plugins {
     id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 group 'com.esotericsoftware'
 version '0.9'
 
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -20,23 +22,13 @@ repositories {
 
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.13.1'
-    testCompile group: 'com.carrotsearch', name: 'junit-benchmarks', version: '0.7.2'
+    testImplementation 'junit:junit:4.13.1'
+    testImplementation 'com.carrotsearch:junit-benchmarks:0.7.2'
 
-    compile group: 'io.netty', name: 'netty-buffer', version: '4.1.85.Final'
-    compile group: 'io.netty', name: 'netty-transport', version: '4.1.85.Final'
-    compile group: 'io.netty', name: 'netty-transport-native-epoll', version: '4.1.85.Final'
-    compile group: 'io.netty', name: 'netty-handler', version: '4.1.85.Final'
+    implementation 'io.netty:netty-buffer:4.1.86.Final'
+    implementation 'io.netty:netty-transport:4.1.86.Final'
+    implementation 'io.netty:netty-transport-native-epoll:4.1.86.Final'
+    implementation 'io.netty:netty-handler:4.1.86.Final'
 
-    compile group: 'com.esotericsoftware', name: 'kryo', version: '5.2.0'
-}
-
-task buildKryoNetty(type: Jar) {
-    baseName = project.name + '-all'
-    from {
-        configurations.compile.collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    }
-    with jar
+    implementation 'com.esotericsoftware:kryo:5.3.0'
 }
